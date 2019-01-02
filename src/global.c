@@ -59,14 +59,11 @@ void sys_time_init(void)
 
 #else	// Mac & Linux versions are identical
 
-#ifdef __APPLE__
-#include <sys/time.h>
-#else
+
 #define _XOPEN_SOURCE 700
 #include <time.h>
-#endif
 
-const uint64_t sys_ticksecond = 1000000000;
+uint64_t sys_ticksecond = 1000000000;
 static uint64_t sys_time_start = 0;
 uint64_t sys_time(void)
 {
@@ -94,10 +91,24 @@ void sys_browser(char *url)
 }
 
 #elif defined __APPLE__
+#include <objc/objc.h>
+#include <objc/runtime.h>
+#include <objc/message.h>
 void sys_browser(char *url)
 {
-	NSURL *MyNSURL = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
-	[[NSWorkspace sharedWorkspace] openURL:MyNSURL];
+//	NSURL *MyNSURL = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
+//	[[NSWorkspace sharedWorkspace] openURL:MyNSURL];
+	SEL URLWithString = sel_registerName("URLWithString:");
+	SEL stringWithUTF8String = sel_registerName("stringWithUTF8String:");
+	SEL sharedWorkspace = sel_registerName("sharedWorkspace");
+	SEL openURL = sel_registerName("openURL:");
+	Class NSURL = objc_getClass("NSURL");
+	Class NSString = objc_getClass("NSString");
+	Class NSWorkspace = objc_getClass("NSWorkspace");
+	id url_nsstring = ((id(*)(Class,SEL, char*))objc_msgSend)(NSString, stringWithUTF8String, url);
+	id ns_url = ((id(*)(Class,SEL,id))objc_msgSend)(NSURL, URLWithString, url_nsstring);
+	id workspace = ((id(*)(Class,SEL))objc_msgSend)(NSWorkspace, sharedWorkspace);
+	((id(*)(id,SEL,id))objc_msgSend)(workspace, openURL, ns_url);
 }
 
 #else	// linux version
