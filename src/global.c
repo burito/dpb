@@ -17,7 +17,15 @@ freely, subject to the following restrictions:
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+#ifndef _WIN32
+#ifdef __APPLE__
+#include <sys/time.h>
+#else
 #define _XOPEN_SOURCE 700
+#include <time.h>
+#endif
+#endif
+
 
 #include <stdint.h>
 
@@ -59,8 +67,6 @@ void sys_time_init(void)
 
 #else	// Mac & Linux versions are identical
 
-
-#include <time.h>
 
 uint64_t sys_ticksecond = 1000000000;
 static uint64_t sys_time_start = 0;
