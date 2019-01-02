@@ -17,11 +17,11 @@ freely, subject to the following restrictions:
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+#define _XOPEN_SOURCE 700
 
 #include <stdint.h>
 
 #include "global.h"
-
 
 int killme=0;
 int sys_width  = 1980;	/* dimensions of default screen */
@@ -60,7 +60,6 @@ void sys_time_init(void)
 #else	// Mac & Linux versions are identical
 
 
-#define _XOPEN_SOURCE 700
 #include <time.h>
 
 uint64_t sys_ticksecond = 1000000000;
@@ -112,6 +111,9 @@ void sys_browser(char *url)
 }
 
 #else	// linux version
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 void sys_browser(char *url)
 {
 	int c=1000;
