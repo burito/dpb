@@ -58,7 +58,7 @@ extern uint64_t sys_ticksecond;	/* ticks in a second */
 uint64_t sys_time(void);
 void sys_time_init(void);
 
-void shell_browser(char *url);
+void sys_browser(char *url);
 
 
 #ifndef M_PI
