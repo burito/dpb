@@ -149,6 +149,9 @@ int int_add(int l, int r) __attribute__((const));
 int int_sub(int l, int r) __attribute__((const));
 int int_div_int(int l, int r) __attribute__((const));
 
+int2 int2_add(int2 l, int2 r) __attribute__((const));
+
+
 // returns the magnitude of a vector
 #define mag(X) _Generic(X, \
 	coord: coord_mag, \
@@ -188,6 +191,7 @@ int int_div_int(int l, int r) __attribute__((const));
 		vect: vect_add_vect, \
 		default:vect_add_float), \
 	float: float_add, \
+	int2: int2_add, \
 	default: int_add \
 	)(X,Y)
 

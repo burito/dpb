@@ -347,6 +347,12 @@ int int_div(int l, int r)
 	return l / r;
 }
 
+int2 int2_add(int2 l, int2 r)
+{
+	int2 x = {l.x+r.x, l.y+r.y};
+	return x;
+}
+
 float float_mul(float l, float r)
 {
 	return l * r;
