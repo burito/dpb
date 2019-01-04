@@ -1,11 +1,11 @@
-
 # *** Platform detection
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
 # MacOS
 BUILD_DIR = $(MAC_DIR)
+GLSLANG = deps/vulkan-lib/mac/glslangValidator
 CC = clang -g
-default: $(BINARY_NAME).app
+default: vulkan.app
 
 else
 # Windows & Linux need ImageMagick, lets check for it
@@ -27,15 +27,17 @@ endif # ImageMagick check done!
 ifeq ($(UNAME), Linux)
 # Linux
 BUILD_DIR = $(LIN_DIR)
+GLSLANG = deps/vulkan-lib/lin/glslangValidator
 CC = clang -g
-default: $(BINARY_NAME)
+default: vulkan
 
 else
 # Windows
 BUILD_DIR = $(WIN_DIR)
+GLSLANG = deps/vulkan-lib/win/glslangValidator.exe
 WINDRES = windres
 CC = gcc -g
-default: $(BINARY_NAME).exe
+default: vulkan.exe
 endif
 endif
 
