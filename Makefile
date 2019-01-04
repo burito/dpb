@@ -1,3 +1,4 @@
+SHELL=bash
 # *** Platform detection
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
@@ -66,8 +67,9 @@ $(MAC_DIR)/%.o: %.m
 $(BINARY_NAME).exe: $(WIN_OBJS)
 	$(CC) $^ $(WIN_LIBS) -o $@
 
-$(BINARY_NAME): $(LIN_OBJS)
+$(BINARY_NAME): $(LIN_OBJS) $(LIN_DIR)/xicon.o
 	$(CC) $^ $(LIN_LIBS) -o $@
+
 
 $(BINARY_NAME).bin: $(MAC_OBJS)
 	$(CC) $(CFLAGS) $^ $(MAC_LIBS) -o $@
@@ -80,19 +82,16 @@ $(WIN_DIR)/win32.res: win32.rc $(WIN_DIR)/Icon.ico
 # end build the win32 Resource File
 
 # crazy stuff to get icons on x11
-$(LIN_DIR)/x11icon: x11icon.c
-	$(LCC) $^ -o $@
+$(LIN_DIR)/x11icon: x11icon.o
+	$(CC) $^ -o $@
 $(LIN_DIR)/icon.rgba: Icon.png
 	$(MAGICK) -resize 256x256 $^ $@
-#	magick convert -resize 256x256 $^ $@
 $(LIN_DIR)/icon.argb: $(LIN_DIR)/icon.rgba $(LIN_DIR)/x11icon
-	./build/lin/x11icon < $(LIN_DIR)/icon.rgba > $@
-$(LIN_DIR)/icon.h: $(LIN_DIR)/icon.argb
-	bin2h 13 < $^ > $@
-$(LIN_DIR)/x11.o: x11.c $(LIN_DIR)/icon.h
-	$(LCC) $(CFLAGS) $(INCLUDES) -I$(LIN_DIR) -c $< -o $@
-$(LIN_DIR)/%.o: %.c
-	$(LCC) $(DEBUG) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(LIN_DIR)/x11icon < $(LIN_DIR)/icon.rgba > $@
+$(LIN_DIR)/icon.head: $(LIN_DIR)/icon.argb
+	printf "\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00" | cat - $^ > $@
+$(LIN_DIR)/xicon.o: $(LIN_DIR)/icon.head
+	ld -r -b binary $^ -o $@
 # end linux icon craziness
 
 # generate the Apple Icon file from src/Icon.png
