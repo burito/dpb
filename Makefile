@@ -82,7 +82,7 @@ $(WIN_DIR)/win32.res: win32.rc $(WIN_DIR)/Icon.ico
 # end build the win32 Resource File
 
 # crazy stuff to get icons on x11
-$(LIN_DIR)/x11icon: x11icon.o
+$(LIN_DIR)/x11icon: $(LIN_DIR)/x11icon.o
 	$(CC) $^ -o $@
 $(LIN_DIR)/icon.rgba: Icon.png
 	$(MAGICK) -resize 256x256 $^ $@
