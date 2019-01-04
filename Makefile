@@ -5,7 +5,7 @@ ifeq ($(UNAME), Darwin)
 BUILD_DIR = $(MAC_DIR)
 GLSLANG = deps/vulkan-lib/mac/glslangValidator
 CC = clang -g
-default: vulkan.app
+default: $(BINARY_NAME).app
 
 else
 # Windows & Linux need ImageMagick, lets check for it
@@ -29,7 +29,7 @@ ifeq ($(UNAME), Linux)
 BUILD_DIR = $(LIN_DIR)
 GLSLANG = deps/vulkan-lib/lin/glslangValidator
 CC = clang -g
-default: vulkan
+default: $(BINARY_NAME)
 
 else
 # Windows
@@ -37,7 +37,7 @@ BUILD_DIR = $(WIN_DIR)
 GLSLANG = deps/vulkan-lib/win/glslangValidator.exe
 WINDRES = windres
 CC = gcc -g
-default: vulkan.exe
+default: $(BINARY_NAME).exe
 endif
 endif
 
