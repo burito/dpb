@@ -111,6 +111,8 @@ MAC_CONTENTS = $(BINARY_NAME).app/Contents
 .PHONY: $(BINARY_NAME).app
 $(BINARY_NAME).app : $(MAC_CONTENTS)/_CodeSignature/CodeResources
 
+.DELETE_ON_ERROR :
+
 $(MAC_CONTENTS)/Info.plist: src/Info.plist
 	@mkdir -p $(MAC_CONTENTS)
 	cp $< $@
