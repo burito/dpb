@@ -10,7 +10,7 @@ HDC hDC;
 HGLRC hGLRC;
 extern HWND hWnd;
 
-char* win_errormsg(void);
+const char* win_errormsg(void);
 
 
 void gfx_resize(void)

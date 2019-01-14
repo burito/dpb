@@ -119,7 +119,7 @@ HMODULE xinput_dll = NULL;
 ///////////////////////////////////////////////////////////////////////////////
 
 
-static const char* win_errormsg(void)
+const char* win_errormsg(void)
 {
 	int err;
 	static char errStr[1000];
