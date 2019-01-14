@@ -10,15 +10,7 @@ HDC hDC;
 HGLRC hGLRC;
 extern HWND hWnd;
 
-static void fail(const char * string)
-{
-	int err;
-	char errStr[1000];
-	err = GetLastError();
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, err, 0,
-		errStr, 1000, 0);
-	log_error("%s: %s", string, errStr);
-}
+char* win_errormsg(void);
 
 
 void gfx_resize(void)
@@ -65,19 +57,19 @@ void gfx_init(void)
 	int pf = ChoosePixelFormat(hDC, &pfd);
 	if(!pf)
 	{
-		fail("ChoosePixelFormat() failed");
+		log_fatal("ChoosePixelFormat() = %s", win_errormsg());
 		return;
 	}
 
 	if(!SetPixelFormat(hDC, pf, &pfd))
 	{
-		fail("SetPixelFormat() failed");
+		log_fatal("SetPixelFormat() = %s", win_errormsg());
 		return;
 	}
 
 	if(!DescribePixelFormat(hDC, pf, sizeof(PIXELFORMATDESCRIPTOR), &pfd))
 	{
-		fail("DescribePixelFormat() failed");
+		log_fatal("DescribePixelFormat() = %s", win_errormsg());
 		return;
 	}
 
@@ -85,12 +77,12 @@ void gfx_init(void)
 	tmpGLRC = wglCreateContext(hDC);
 	if(!tmpGLRC)
 	{
-		fail("wglCreateContext() failed");
+		log_fatal("wglCreateContext() = %s", win_errormsg());
 		return;
 	}
 	if(!wglMakeCurrent(hDC, tmpGLRC))
 	{
-		fail("wglMakeCurrent() failed");
+		log_fatal("wglMakeCurrent() = %s", win_errormsg());
 		return;
 	}
 	glewInit();

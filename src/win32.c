@@ -65,6 +65,12 @@ int focus = 1;
 int menu = 1;
 int sys_bpp = 32;
 
+void gfx_init(void);
+void gfx_end(void);
+void gfx_resize(void);
+void gfx_swap(void);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //////// borrowed from XInput.h 
 ///////////////////////////////////////////////////////////////////////////////
@@ -563,11 +569,10 @@ int APIENTRY WinMain(HINSTANCE hCurrentInst, HINSTANCE hPrev,
 	{
 		handle_events();
 		main_loop();
+		gfx_swap();
 	}
 
 	main_end();
 	win_end();
 	return 0;
 }
-
-
