@@ -65,11 +65,7 @@ int focus = 1;
 int menu = 1;
 int sys_bpp = 32;
 
-void gfx_init(void);
-void gfx_end(void);
 void gfx_resize(void);
-void gfx_swap(void);
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //////// borrowed from XInput.h 
@@ -475,14 +471,11 @@ static void win_init(void)
 	}
 	ShowWindow(hWnd, CmdShow);
 	UpdateWindow(hWnd);
-
-	gfx_init();
 }
 
 static void win_end(void)
 {
 	if(fullscreen)ShowCursor(TRUE);
-	gfx_end();
 	DestroyWindow(hWnd);
 	UnregisterClass(winClassName, hInst);
 	if(xinput_dll != NULL)
@@ -492,7 +485,6 @@ static void win_end(void)
 		FreeLibrary(xinput_dll);
 		xinput_dll = NULL;
 	}
-
 }
 
 static void handle_events(void)
@@ -569,7 +561,6 @@ int APIENTRY WinMain(HINSTANCE hCurrentInst, HINSTANCE hPrev,
 	{
 		handle_events();
 		main_loop();
-		gfx_swap();
 	}
 
 	main_end();

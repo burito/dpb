@@ -21,9 +21,6 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#define _XOPEN_SOURCE 700	// for CLOCK_MONOTONIC_RAW
-#include <time.h>
-
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/XInput2.h>
@@ -65,17 +62,10 @@ int opcode;		// for XInput
 
 int oldx=0, oldy=0;
 
-
-void gfx_init(void);
-void gfx_end(void);
 void gfx_resize(void);
-void gfx_swap(void);
-
-
 
 static void x11_down(void)
 {
-	gfx_end();
 	if(fullscreen)
 	{
 		XUndefineCursor(display, window);
@@ -94,7 +84,6 @@ static void x11_down(void)
 		win_height = vid_height;
 	}
 //	XCloseDisplay(display);
-	gfx_init();
 }
 
 
@@ -165,7 +154,7 @@ static void x11_window(void)
 		PropModeReplace, (unsigned char*)atoms, 1);
 	}
 
-//	gfx_resize();
+	gfx_resize();
 }
 
 
@@ -181,8 +170,6 @@ static void x11_init(void)
 	sys_height = XHeightOfScreen(screen_ptr);
 
 	int screen_id = DefaultScreen(display);
-
-//	gfx_init();
 
 	memset(&xwin_attr, 0, sizeof(XSetWindowAttributes));
 	int screen = DefaultScreen(display);
@@ -208,7 +195,6 @@ static void x11_init(void)
 		return;
 	}
 
-	gfx_init();
 
 }
 
@@ -351,7 +337,6 @@ static void handle_events(void)
 
 static void x11_end(void)
 {
-	gfx_end();
 	x11_down();
 	XCloseDisplay(display);
 }
@@ -374,7 +359,6 @@ int main(int argc, char* argv[])
 	{
 		handle_events();
 		main_loop();
-		gfx_swap();
 	}
 
 	main_end();
