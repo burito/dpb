@@ -97,12 +97,6 @@ extern CVDisplayLinkRef _displayLink;
 }
 
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotifcation
-{
-	log_debug("AppDelegate:applicationDidFinishLaunching");	
-
-}
-
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 {
 	if( ! killme )
@@ -131,8 +125,9 @@ extern CVDisplayLinkRef _displayLink;
 
 - (void)windowDidResize:(NSNotification *)notification;
 {
-	log_debug("WindowDelegate:windowDidResize");
+//	log_debug("WindowDelegate:windowDidResize");
 	NSWindow *window = [notification object];
+	sys_dpi = [window backingScaleFactor];
 	CGSize box = window.frame.size;
 	vid_width = box.width * sys_dpi;
 	vid_height = box.height * sys_dpi;
