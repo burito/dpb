@@ -24,9 +24,7 @@ static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
 	NSOpenGLContext *glcontext = [ns_view openGLContext];
 	CGLContextObj context = [glcontext CGLContextObj];
 
-//	log_warning("glv = %s", [[glview description] cStringUsingEncoding:NSASCIIStringEncoding]);
-//	log_warning("glctx = %s", [[glcontext description] cStringUsingEncoding:NSASCIIStringEncoding]);
-//	log_warning("pf = %s", [[pixelFormat description] cStringUsingEncoding:NSASCIIStringEncoding]);
+//	log_warning("pf = %s", [[pixelFormat description] cStringUsingEncoding:NSUTF8StringEncoding]);
 
 
 
@@ -46,7 +44,6 @@ static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
 
 	if(killme != 0)
 	{
-//		[NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
 		[NSApp terminate:nil];
 	}
 
@@ -54,7 +51,7 @@ static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
 	return kCVReturnSuccess;
 }
 
-void gfx_init(void)
+void osx_view_init(void)
 {
 
 	NSOpenGLPixelFormatAttribute pixelFormatAttributes[] =
@@ -78,32 +75,23 @@ void gfx_init(void)
 	[window setContentView:view];
 	ns_view = view;
 
-//	NSLog( [ [view description] cStringUsingEncoding:typeUTF8Text] );
-//	log_warning("view = %s", [[view description] cStringUsingEncoding:typeUTF8Text]);
+//	NSLog( [ [view description] cStringUsingEncoding:NSUTF8StringEncoding] );
+//	log_warning("view = %s", [[view description] cStringUsingEncoding:NSUTF8StringEncoding]);
 
 	log_warning("view = %s", [[view description] cStringUsingEncoding:NSUTF8StringEncoding]);
 
-
 	GLint vsync = 0;
 
-//	[self setWantsBestResolutionOpenGLSurface:YES];   // enable retina resolutions
-//	sys_dpi = [self.window backingScaleFactor];
+	[view setWantsBestResolutionOpenGLSurface:YES];   // enable retina resolutions
+//	sys_dpi = [window backingScaleFactor];
 //	[[view openGLContext] setValues:&vsync forParameter:NSOpenGLCPSwapInterval];
 	[[view openGLContext] setValues:&vsync forParameter:NSOpenGLContextParameterSwapInterval];
 
-	// Use a CVDisplayLink to do the render loop
-	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
-	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
 
-	log_warning("ds = %s", [[_displayLink description] cStringUsingEncoding:NSUTF8StringEncoding]);
-
-	log_warning("ctx = %s", [[[view openGLContext] description] cStringUsingEncoding:NSUTF8StringEncoding]);
-	log_warning("pf = %s", [[pixelFormat description] cStringUsingEncoding:NSUTF8StringEncoding]);
+//	log_warning("pf = %s", [[pixelFormat description] cStringUsingEncoding:NSUTF8StringEncoding]);
 
 	CGLContextObj cglContext = [[view openGLContext] CGLContextObj];
 	CGLPixelFormatObj cglPixelFormat = [pixelFormat CGLPixelFormatObj];
-
-
 
 	CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext, cglPixelFormat);
 
@@ -111,9 +99,12 @@ void gfx_init(void)
 }
 
 
+void gfx_init(void)
+{
+}
+
 void gfx_end(void)
 {
-	CVDisplayLinkRelease(_displayLink);
 }
 
 extern int y_correction;  // to correct mouse position for title bar
@@ -127,5 +118,4 @@ void gfx_resize(void)
 
 void gfx_swap(void)
 {
-
 }

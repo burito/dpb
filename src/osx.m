@@ -31,6 +31,7 @@ freely, subject to the following restrictions:
 ///////////////////////////////////////////////////////////////////////////////
 
 void gfx_resize(void);
+void osx_view_init(void);
 
 int fullscreen = 0;
 int fullscreen_toggle = 0;
@@ -67,7 +68,7 @@ extern CVDisplayLinkRef _displayLink;
 	aMenu = [[NSMenu alloc] initWithTitle:@"Apple"];
 	[NSApp performSelector:@selector(setAppleMenu:) withObject:aMenu];
 
-	// generate contents of menu
+	// generate contents of men
 	NSMenuItem * menuItem;
 	NSString * applicationName = @"voxel";
 	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"About", nil), applicationName]
@@ -241,6 +242,9 @@ int main(int argc, char * argv[])
 
 	[window makeKeyAndOrderFront:window];
 
+	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
+	osx_view_init();
 	if( main_init(argc, argv) )
 	{
 		killme = 1;
@@ -250,6 +254,7 @@ int main(int argc, char * argv[])
 
 	[myapp run];
 	[myapp setDelegate:nil];
+	CVDisplayLinkRelease(_displayLink);
 
 	main_end();
 	return 0;
