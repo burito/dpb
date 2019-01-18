@@ -123,15 +123,16 @@ extern CVDisplayLinkRef _displayLink;
 	return true;
 }
 
+
+
 - (void)windowDidResize:(NSNotification *)notification;
 {
 //	log_debug("WindowDelegate:windowDidResize");
 	NSWindow *window = [notification object];
 	sys_dpi = [window backingScaleFactor];
-	CGSize box = window.frame.size;
+	CGSize box = [window contentView].frame.size;
 	vid_width = box.width * sys_dpi;
 	vid_height = box.height * sys_dpi;
-//	log_info("x = %d, y = %d", vid_width, vid_height);
 	gfx_resize();
 }
 
@@ -148,7 +149,7 @@ extern CVDisplayLinkRef _displayLink;
 static void mouse_move(NSEvent * theEvent)
 {
 	mouse_x = theEvent.locationInWindow.x * sys_dpi;
-	mouse_y = vid_height-(theEvent.locationInWindow.y + y_correction) * sys_dpi;
+	mouse_y = vid_height - theEvent.locationInWindow.y * sys_dpi;
 	mickey_x -= theEvent.deltaX * sys_dpi;
 	mickey_y -= theEvent.deltaY * sys_dpi;
 }
