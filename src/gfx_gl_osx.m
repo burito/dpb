@@ -13,9 +13,9 @@
 
 CVDisplayLinkRef _displayLink;
 extern NSWindow * window;
-static NSView * ns_view;
+static NSOpenGLView * ns_view;
 
-static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
+CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
 {
 //	log_debug("View:DisplayLinkCallback");
 	CGLError result;

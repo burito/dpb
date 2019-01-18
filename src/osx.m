@@ -32,6 +32,7 @@ freely, subject to the following restrictions:
 
 void gfx_resize(void);
 void osx_view_init(void);
+CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext);
 
 int fullscreen = 0;
 int fullscreen_toggle = 0;
