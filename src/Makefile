@@ -78,7 +78,8 @@ $(BINARY_NAME).bin: $(MAC_OBJS)
 $(WIN_DIR)/Icon.ico: Icon.png
 	$(MAGICK) -resize 256x256 $^ $@
 $(WIN_DIR)/win32.rc: win32.rc.pre
-	cpp -E -P $^ -o $@ -traditional -DCOMMENTS="\"$(COMMENTS)\"" -DCOPYRIGHT="\"\xA9 $(COPYRIGHT) $(COMPANY)\"" -DCOMPANY="\"$(COMPANY)\"" -DDESCRIPTION="\"$(DESCRIPTION)\"" -DGIT_VERSION="\"$(GIT_VERSION)\"" -DBINARY_NAME="\"$(BINARY_NAME)\""
+	sed -e "s/COPYRIGHT/$(COPYRIGHT)/" -e "s/COMPANY/$(COMPANY)/" -e "s/GIT_VERSION/$(GIT_VERSION)/" -e "s/BINARY_NAME/$(BINARY_NAME)/" -e "s/DESCRIPTION/$(DESCRIPTION)/" < $^ > $@
+
 $(WIN_DIR)/win32.res: $(WIN_DIR)/win32.rc $(WIN_DIR)/Icon.ico
 	$(WINDRES) -I $(WIN_DIR) -O coff $< -o $@
 # end build the win32 Resource File

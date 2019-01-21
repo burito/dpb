@@ -1,5 +1,5 @@
 COMPANY = Daniel Burke
-COPYRIGHT = 2012-2016
+COPYRIGHT = 2019
 DESCRIPTION = Windowing Test
 COMMENTS = https://github.com/burito/dpb/
 BINARY_NAME = gfx_null
