@@ -142,7 +142,7 @@ static void x11_window(void)
 
 	// My window shall be named...
 //	XSetWMProperties(display, window, "Kittens", "Kitteh", NULL, 0, NULL, NULL, NULL);
-	XSetStandardProperties(display, window, "Kittens", "Kitteh", None, NULL, 0, NULL);
+	XSetStandardProperties(display, window, binary_name, binary_name, None, NULL, 0, NULL);
 	XMapRaised(display, window);
 
 	if(fullscreen)
