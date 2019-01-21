@@ -16,6 +16,19 @@ _MAC_OBJS = osx.o $(OBJS)
 
 include src/Makefile
 
+# this has to list everything inside the app bundle
+$(MAC_CONTENTS)/_CodeSignature/CodeResources : \
+	$(MAC_CONTENTS)/MacOS/$(BINARY_NAME) \
+	$(MAC_CONTENTS)/Resources/AppIcon.icns \
+	$(MAC_CONTENTS)/Info.plist
+	codesign --force --deep --sign - $(BINARY_NAME).app
+
+# copies the binary, and tells it where to find libraries
+$(MAC_CONTENTS)/MacOS/$(BINARY_NAME): $(BINARY_NAME).bin
+	@mkdir -p $(MAC_CONTENTS)/MacOS
+	cp $< $@
+
+
 clean:
 	@rm -rf build $(BINARY_NAME) $(BINARY_NAME).exe $(BINARY_NAME).bin $(BINARY_NAME).app
 

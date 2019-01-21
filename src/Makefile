@@ -114,9 +114,9 @@ $(BINARY_NAME).app : $(MAC_CONTENTS)/_CodeSignature/CodeResources
 
 .DELETE_ON_ERROR :
 
-$(MAC_CONTENTS)/Info.plist: src/Info.plist
+$(MAC_CONTENTS)/Info.plist: src/Info.plist.pre
 	@mkdir -p $(MAC_CONTENTS)
-	cp $< $@
+	sed -e "s/COPYRIGHT/$(COPYRIGHT)/" -e "s/COMPANY/$(COMPANY)/" -e "s/GIT_VERSION/$(GIT_VERSION)/" -e "s/BINARY_NAME/$(BINARY_NAME)/" < $^ > $@
 
 $(MAC_CONTENTS)/Resources/AppIcon.icns: $(MAC_DIR)/AppIcon.icns
 	@mkdir -p $(MAC_CONTENTS)/Resources
