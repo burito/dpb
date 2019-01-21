@@ -7,7 +7,7 @@ OBJS =  log.o global.o version.o gl_test.o
 VPATH = src test build deps
 
 WIN_LIBS = -luser32 -lshell32 -lopengl32 -lgdi32
-LIN_LIBS = -lm -lX11
+LIN_LIBS = -lm -lX11 -lGL
 MAC_LIBS = -framework CoreVideo -framework Cocoa
 
 _WIN_OBJS = win32.o win32.res gfx_gl_win.o glew.o $(OBJS)
