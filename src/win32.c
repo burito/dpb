@@ -403,7 +403,6 @@ static void win_toggle(void)
 }
 
 
-char *winClassName = "Kittens";
 static void win_init(void)
 {
 	memset(keys, 0, KEYMAX);
@@ -452,7 +451,7 @@ static void win_init(void)
 	wc.hCursor	= LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground= NULL;
 	wc.lpszMenuName	= NULL;
-	wc.lpszClassName= winClassName;
+	wc.lpszClassName= binary_name;
 
 	if(!RegisterClassEx(&wc))
 	{
@@ -460,7 +459,7 @@ static void win_init(void)
 		return;
 	}
 
-	hWnd = CreateWindowEx(0, "Kittens", "Kittens",
+	hWnd = CreateWindowEx(0, binary_name, binary_name,
 		WS_TILEDWINDOW, //|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
 		50,50,vid_width,vid_height,NULL,NULL,hInst,NULL);
 
@@ -477,7 +476,7 @@ static void win_end(void)
 {
 	if(fullscreen)ShowCursor(TRUE);
 	DestroyWindow(hWnd);
-	UnregisterClass(winClassName, hInst);
+	UnregisterClass(binary_name, hInst);
 	if(xinput_dll != NULL)
 	{
 		XInputGetState = NULL;

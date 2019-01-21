@@ -54,6 +54,7 @@ void log_init(void)
 	SetConsoleMode(console, mode);
 #endif
 	sys_time_init();
+	log_info("Version     : %s", git_version);
 }
 
 static const char * log_label(enum LOG_LEVEL level)

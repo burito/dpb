@@ -61,6 +61,9 @@ void sys_time_init(void);
 void sys_browser(char *url);
 
 
+extern const char git_version[];
+extern const char binary_name[];
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif

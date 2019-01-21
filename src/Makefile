@@ -77,8 +77,10 @@ $(BINARY_NAME).bin: $(MAC_OBJS)
 # start build the win32 Resource File (contains the icon)
 $(WIN_DIR)/Icon.ico: Icon.png
 	$(MAGICK) -resize 256x256 $^ $@
-$(WIN_DIR)/win32.res: win32.rc $(WIN_DIR)/Icon.ico
-	$(WINDRES) -I $(WIN_DIR) -O coff src/win32.rc -o $@
+$(WIN_DIR)/win32.rc: win32.rc.pre
+	cpp -E -P $^ -o $@ -traditional -DCOMMENTS="\"$(COMMENTS)\"" -DCOPYRIGHT="\"\xA9 $(COPYRIGHT) $(COMPANY)\"" -DCOMPANY="\"$(COMPANY)\"" -DDESCRIPTION="\"$(DESCRIPTION)\"" -DGIT_VERSION="\"$(GIT_VERSION)\"" -DBINARY_NAME="\"$(BINARY_NAME)\""
+$(WIN_DIR)/win32.res: $(WIN_DIR)/win32.rc $(WIN_DIR)/Icon.ico
+	$(WINDRES) -I $(WIN_DIR) -O coff $< -o $@
 # end build the win32 Resource File
 
 # crazy stuff to get icons on x11
@@ -122,7 +124,7 @@ $(MAC_CONTENTS)/Resources/AppIcon.icns: $(MAC_DIR)/AppIcon.icns
 
 # create the version info
 GIT_VERSION:=$(shell git describe --dirty --always --tags)
-VERSION:=const char git_version[] = "$(GIT_VERSION)";
+VERSION:=const char git_version[] = "$(GIT_VERSION)";const char binary_name[] = "$(BINARY_NAME)";
 SRC_VERSION:=$(shell mkdir -p build && cat build/version.c 2>/dev/null)
 ifneq ($(SRC_VERSION),$(VERSION))
 $(shell echo '$(VERSION)' > build/version.c)

@@ -1,0 +1,22 @@
+0	ICON	Icon.ico
+1 VERSIONINFO
+FILEVERSION		1,0,0,0
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "00000000"
+		BEGIN
+			VALUE "Comments", COMMENTS
+			VALUE "CompanyName", COMPANY
+			VALUE "FileDescription", DESCRIPTION
+			VALUE "LegalCopyright", COPYRIGHT
+			VALUE "ProductName", BINARY_NAME
+			VALUE "ProductVersion", GIT_VERSION
+		END
+	END
+
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x0000, 0
+	END
+END
