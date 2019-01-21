@@ -1,7 +1,6 @@
 COMPANY = Daniel Burke
 COPYRIGHT = 2019
 DESCRIPTION = Windowing Test
-COMMENTS = https://github.com/burito/dpb/
 BINARY_NAME = gfx_null
 OBJS = gfx_null.o log.o global.o version.o
 VPATH = src test build
