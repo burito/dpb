@@ -2,13 +2,13 @@ COMPANY = Daniel Burke
 COPYRIGHT = 2019
 DESCRIPTION = OpenGL Test
 BINARY_NAME = gfx_gl
-CFLAGS = -std=c11 -Ideps/include -Isrc
+CFLAGS = -std=c11 -Ideps/include -Isrc -DOLD_OPENGL
 OBJS =  log.o global.o version.o gl_test.o
 VPATH = src test build deps
 
 WIN_LIBS = -luser32 -lshell32 -lopengl32 -lgdi32
 LIN_LIBS = -lm -lX11 -lGL
-MAC_LIBS = -framework CoreVideo -framework Cocoa
+MAC_LIBS = -framework CoreVideo -framework Cocoa -framework OpenGL
 
 _WIN_OBJS = win32.o win32.res gfx_gl_win.o glew.o $(OBJS)
 _LIN_OBJS = linux_xlib.o gfx_gl_lin.o glew.o $(OBJS)

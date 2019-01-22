@@ -2,7 +2,7 @@ COMPANY = Daniel Burke
 COPYRIGHT = 2019
 DESCRIPTION = Windowing Test
 BINARY_NAME = gfx_null
-CFLAGS = -std=c11
+CFLAGS = -std=c11 -Isrc
 OBJS = gfx_null.o log.o global.o version.o
 VPATH = src test build
 
