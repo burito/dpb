@@ -4,7 +4,7 @@ DESCRIPTION = Windowing Test
 BINARY_NAME = gfx_null
 CFLAGS = -std=c11 -Isrc
 OBJS = gfx_null.o log.o global.o version.o
-VPATH = src test build
+VPATH = src test
 
 WIN_LIBS = -luser32 -lshell32
 LIN_LIBS = -lm -lX11

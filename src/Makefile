@@ -3,7 +3,6 @@ SHELL=bash
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
 # MacOS
-BUILD_DIR = $(MAC_DIR)
 GLSLANG = deps/vulkan-lib/mac/glslangValidator
 CC = clang -g
 default: $(BINARY_NAME).app
@@ -27,14 +26,12 @@ endif # ImageMagick check done!
 
 ifeq ($(UNAME), Linux)
 # Linux
-BUILD_DIR = $(LIN_DIR)
 GLSLANG = deps/vulkan-lib/lin/glslangValidator
 CC = clang -g
 default: $(BINARY_NAME)
 
 else
 # Windows
-BUILD_DIR = $(WIN_DIR)
 GLSLANG = deps/vulkan-lib/win/glslangValidator.exe
 WINDRES = windres
 CC = gcc -g
@@ -42,10 +39,14 @@ default: $(BINARY_NAME).exe
 endif
 endif
 
+BUILD_DIR = build/$(BINARY_NAME)
+VPATH += $(BUILD_DIR)
 
-WIN_DIR = build/win
-LIN_DIR = build/lin
-MAC_DIR = build/mac
+WIN_DIR = $(BUILD_DIR)/win
+LIN_DIR = $(BUILD_DIR)/lin
+MAC_DIR = $(BUILD_DIR)/mac
+
+$(shell mkdir -p $(WIN_DIR) $(LIN_DIR) $(MAC_DIR))
 
 WIN_OBJS = $(patsubst %,$(WIN_DIR)/%,$(_WIN_OBJS))
 LIN_OBJS = $(patsubst %,$(LIN_DIR)/%,$(_LIN_OBJS))
@@ -126,7 +127,7 @@ $(MAC_CONTENTS)/Resources/AppIcon.icns: $(MAC_DIR)/AppIcon.icns
 # create the version info
 GIT_VERSION:=$(shell git describe --dirty --always --tags)
 VERSION:=const char git_version[] = "$(GIT_VERSION)";const char binary_name[] = "$(BINARY_NAME)";
-SRC_VERSION:=$(shell mkdir -p build && cat build/version.c 2>/dev/null)
+SRC_VERSION:=$(shell mkdir -p $(BUILD_DIR) && cat $(BUILD_DIR)/version.c 2>/dev/null)
 ifneq ($(SRC_VERSION),$(VERSION))
-$(shell echo '$(VERSION)' > build/version.c)
+$(shell echo '$(VERSION)' > $(BUILD_DIR)/version.c)
 endif

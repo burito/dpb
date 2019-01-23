@@ -2,7 +2,7 @@
 
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl3.h>
-#include <OpenGL/OpenGL.h>
+//#include <OpenGL/OpenGL.h>
 
 //#define OLD_OPENGL	// or use a modern context
 
@@ -67,7 +67,6 @@ CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* no
 	SEL flushBuffer = sel_registerName("flushBuffer");
 	objc_msgSend(glcontext, flushBuffer);
 
-
 	result = CGLUnlockContext(context);
 	if(result != 0)
 	{
@@ -86,15 +85,13 @@ CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* no
 
 void osx_view_init(void)
 {
-
-
 // /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSOpenGL.h
 	uint32_t pixelFormatAttributes[] = {
-#ifndef OLD_OPENGL
+#ifdef OLD_OPENGL
+		99, 0x1000, //NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersionLegacy,
+#else
 		99, 0x4100, //NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
 //		99, 0x3200, //NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
-#else
-		99, 0x1000, //NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersionLegacy,
 #endif
 		8, 24,	//NSOpenGLPFAColorSize    , 24,
 		11, 8,	//NSOpenGLPFAAlphaSize    , 8,
@@ -116,29 +113,15 @@ void osx_view_init(void)
 //	id gl_view_alloc = [NSOpenGLView alloc];
 	Class NSOpenGLViewClass = objc_getClass("NSOpenGLView");
 	id gl_view_alloc = objc_msgSend((id)NSOpenGLViewClass, alloc);
-
 //	CGRect window_bounds = [window contentView];
 	SEL contentView = sel_registerName("contentView");
 	id window_contentview = objc_msgSend(window, contentView);
-
 //	CGRect window_bounds = [window_contentview bounds];
 	SEL bounds = sel_registerName("bounds");
 	CGRect window_bounds = ((CGRect (*)(id, SEL))objc_msgSend_stret)(window_contentview, bounds);
-
 //	NSOpenGLView *view = [gl_view_alloc initWithFrame:window_bounds pixelFormat:glpixelformat];
 	SEL initWithFramePixelFormat = sel_registerName("initWithFrame:pixelFormat:");
 	id view = objc_msgSend(gl_view_alloc, initWithFramePixelFormat, window_bounds, glpixelformat);
-
-
-/*	SEL initWithFramePixelFormat = sel_registerName("initWithFrame:pixelFormat:");
-	SEL contentView = sel_registerName("contentView");
-	SEL bounds = sel_registerName("bounds");
-	id gl_view_alloc = objc_msgSend(NSOpenGLViewClass, alloc);
-	id window_contentview = objc_msgSend(window, contentView);
-	CGRect window_bounds = objc_msgSend(window_contentview, bounds);
-	id view = objc_msgSend(gl_view_alloc, initWithFramePixelFormat, window_bounds, glpixelformat);
-*/
-
 
 //	[window setContentView:view];
 	SEL setContentView = sel_registerName("setContentView:");
@@ -156,7 +139,6 @@ void osx_view_init(void)
 //	sys_dpi = [window backingScaleFactor];
 //	[[view openGLContext] setValues:&vsync forParameter:NSOpenGLCPSwapInterval];
 //	[[view openGLContext] setValues:&vsync forParameter:NSOpenGLContextParameterSwapInterval];
-
 
 //	CGLContextObj cglContext = [[view openGLContext] CGLContextObj];
 	SEL openGLContext = sel_registerName("openGLContext");
@@ -182,14 +164,10 @@ void gfx_end(void)
 {
 }
 
-extern int y_correction;  // to correct mouse position for title bar
-
-
 void gfx_resize(void)
 {
-	glViewport(0, y_correction, vid_width, vid_height);
+	glViewport(0, 0, vid_width, vid_height);
 }
-
 
 void gfx_swap(void)
 {

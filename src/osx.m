@@ -23,6 +23,8 @@ freely, subject to the following restrictions:
 
 #import <Cocoa/Cocoa.h>
 
+#include <objc/message.h>
+
 #include "log.h"
 #include "global.h"
 
@@ -40,10 +42,7 @@ int fullscreen_toggle = 0;
 static int gargc;
 static char ** gargv;
 NSWindow * window;
-static NSApplication * myapp;
-int y_correction = 0;  // to correct mouse position for title bar
 
-extern char *key_names[];
 extern CVDisplayLinkRef _displayLink;
 
 
@@ -69,10 +68,15 @@ extern CVDisplayLinkRef _displayLink;
 	aMenu = [[NSMenu alloc] initWithTitle:@"Apple"];
 	[NSApp performSelector:@selector(setAppleMenu:) withObject:aMenu];
 
-	// generate contents of men
+	// generate contents of menu
+
+	Class class_NSString = objc_getClass("NSString");
+	SEL sel_stringWithUTF8String = sel_registerName("stringWithUTF8String:");
+	id ns_binary_name = objc_msgSend(class_NSString, sel_stringWithUTF8String, binary_name);
+
+
 	NSMenuItem * menuItem;
-	NSString * applicationName = @"voxel";
-	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"About", nil), applicationName]
+	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"About", nil), ns_binary_name]
 				    action:@selector(orderFrontStandardAboutPanel:)
 			     keyEquivalent:@""];
 	[menuItem setTarget:NSApp];
@@ -86,7 +90,7 @@ extern CVDisplayLinkRef _displayLink;
 
 	[aMenu addItem:[NSMenuItem separatorItem]];
 
-	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"Quit", nil), applicationName]
+	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"Quit", nil), ns_binary_name]
 				    action:@selector(terminate:)
 			     keyEquivalent:@"q"];
 	[menuItem setTarget:NSApp];
@@ -103,9 +107,7 @@ extern CVDisplayLinkRef _displayLink;
 		log_info("Shutdown on : App Close");
 	killme = 1;
 
-//	return NSTerminateCancel;
 	return NSTerminateNow;
-//	return NSTerminateLater;
 }
 
 @end
@@ -221,7 +223,7 @@ int main(int argc, char * argv[])
 	gargc = argc;
 	gargv = argv;
 
-	myapp = [MyApp sharedApplication];
+	id myapp = [MyApp sharedApplication];
 	AppDelegate * appd = [[AppDelegate alloc] init];
 	[myapp setDelegate:appd];
 
@@ -235,7 +237,12 @@ int main(int argc, char * argv[])
 	[window setDelegate: wdg];
 
 	window.backgroundColor = [NSColor whiteColor];
-	[window setTitle: @"Kittens"];
+
+	Class class_NSString = objc_getClass("NSString");
+	SEL sel_stringWithUTF8String = sel_registerName("stringWithUTF8String:");
+	id ns_binary_name = objc_msgSend(class_NSString, sel_stringWithUTF8String, binary_name);
+
+	[window setTitle: ns_binary_name];
 
 	[window makeKeyAndOrderFront:window];
 
