@@ -59,45 +59,33 @@ extern CVDisplayLinkRef _displayLink;
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
-	// Create the menu that goes on the Apple Bar
-	NSMenu * mainMenu = [[NSMenu alloc] initWithTitle:@"MainMenu"];
-	NSMenuItem * menuTitle;
-	NSMenu * aMenu;
+	id menubar = [[NSMenu alloc] init];
+	id menubaritem_app = [[NSMenuItem alloc] init];
+	[menubar addItem:menubaritem_app];
+	[NSApp setMainMenu:menubar];
+	id menu_app = [[NSMenu alloc] init];
 
-	menuTitle = [mainMenu addItemWithTitle:@"Apple" action:NULL keyEquivalent:@""];
-	aMenu = [[NSMenu alloc] initWithTitle:@"Apple"];
-	[NSApp performSelector:@selector(setAppleMenu:) withObject:aMenu];
+	id str_appname = [[NSProcessInfo processInfo] processName];
+	id str_about = [NSString stringWithUTF8String:"About "];
+	id str_about_app = [str_about stringByAppendingString:str_appname];
+	id str_quit = [NSString stringWithUTF8String:"Quit "];
+	id str_quit_app = [str_quit stringByAppendingString:str_appname];
 
-	// generate contents of menu
+	id menuitem_about = [[NSMenuItem alloc] initWithTitle:str_about_app action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+	[menu_app addItem:menuitem_about];
 
-	Class class_NSString = objc_getClass("NSString");
-	SEL sel_stringWithUTF8String = sel_registerName("stringWithUTF8String:");
-	id ns_binary_name = objc_msgSend(class_NSString, sel_stringWithUTF8String, binary_name);
+	[menu_app addItem:[NSMenuItem separatorItem]];
 
+	id menuitem_fullscreen = [[NSMenuItem alloc] initWithTitle:@"" action:@selector(toggleFullScreen:) keyEquivalent:@"f"];
+	[menuitem_fullscreen setKeyEquivalentModifierMask:NSEventModifierFlagCommand | NSEventModifierFlagControl];
+	[menu_app addItem:menuitem_fullscreen];
 
-	NSMenuItem * menuItem;
-	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"About", nil), ns_binary_name]
-				    action:@selector(orderFrontStandardAboutPanel:)
-			     keyEquivalent:@""];
-	[menuItem setTarget:NSApp];
-	[aMenu addItem:[NSMenuItem separatorItem]];
+	[menu_app addItem:[NSMenuItem separatorItem]];
 
-	menuItem = [aMenu addItemWithTitle:NSLocalizedString(@"Fullscreen", nil)
-				    action:@selector(toggleFullScreen:)
-			     keyEquivalent:@"f"];
-	[menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand | NSEventModifierFlagControl];
-	menuItem.target = nil;
+	id menuitem_quit = [[NSMenuItem alloc] initWithTitle:str_quit_app action:@selector(terminate:) keyEquivalent:@"q"];
+	[menu_app addItem:menuitem_quit];
 
-	[aMenu addItem:[NSMenuItem separatorItem]];
-
-	menuItem = [aMenu addItemWithTitle:[NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"Quit", nil), ns_binary_name]
-				    action:@selector(terminate:)
-			     keyEquivalent:@"q"];
-	[menuItem setTarget:NSApp];
-
-	// attach generated menu to menuitem
-	[mainMenu setSubmenu:aMenu forItem:menuTitle];
-	[NSApp setMainMenu:mainMenu];
+	[menubaritem_app setSubmenu:menu_app];
 }
 
 
