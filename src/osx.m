@@ -50,14 +50,7 @@ extern CVDisplayLinkRef _displayLink;
 //////// Mac OS X OpenGL window setup
 ///////////////////////////////////////////////////////////////////////////////
 
-
-@interface AppDelegate : NSObject <NSApplicationDelegate>
-@end
-
-@implementation AppDelegate
-
-
-- (void)applicationWillFinishLaunching:(NSNotification *)aNotification
+void sys_menu_init(void)
 {
 	// get selectors and classes
 	SEL sel_alloc = sel_registerName("alloc");
@@ -146,6 +139,11 @@ extern CVDisplayLinkRef _displayLink;
 	objc_msgSend(menubaritem_app, sel_setSubmenu, menu_app);
 }
 
+@interface AppDelegate : NSObject <NSApplicationDelegate>
+@end
+
+@implementation AppDelegate
+
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 {
@@ -172,7 +170,6 @@ extern CVDisplayLinkRef _displayLink;
 }
 
 
-
 - (void)windowDidResize:(NSNotification *)notification;
 {
 //	log_debug("WindowDelegate:windowDidResize");
@@ -196,8 +193,10 @@ extern CVDisplayLinkRef _displayLink;
 
 static void mouse_move(NSEvent * theEvent)
 {
+	// TODO: this is broken
 	mouse_x = theEvent.locationInWindow.x * sys_dpi;
 	mouse_y = vid_height - theEvent.locationInWindow.y * sys_dpi;
+//	log_debug("mouse = (%d, %d) dpi = %f", mouse_x, mouse_y, sys_dpi);
 	mickey_x -= theEvent.deltaX * sys_dpi;
 	mickey_y -= theEvent.deltaY * sys_dpi;
 }
@@ -272,6 +271,8 @@ int main(int argc, char * argv[])
 	id myapp = [MyApp sharedApplication];
 	AppDelegate * appd = [[AppDelegate alloc] init];
 	[myapp setDelegate:appd];
+	sys_menu_init();
+
 
 	NSRect contentSize = NSMakeRect(10.0, 500.0, 640.0, 360.0);
 	NSUInteger windowStyleMask = NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
