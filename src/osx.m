@@ -59,33 +59,91 @@ extern CVDisplayLinkRef _displayLink;
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
-	id menubar = [[NSMenu alloc] init];
-	id menubaritem_app = [[NSMenuItem alloc] init];
-	[menubar addItem:menubaritem_app];
-	[NSApp setMainMenu:menubar];
-	id menu_app = [[NSMenu alloc] init];
+	// get selectors and classes
+	SEL sel_alloc = sel_registerName("alloc");
+	SEL sel_init = sel_registerName("init");
+	Class class_NSMenu = objc_getClass("NSMenu");
+	SEL sel_setMainMenu = sel_registerName("setMainMenu:");
+	Class class_NSMenuItem = objc_getClass("NSMenuItem");
+	SEL sel_initWithTitle_action_keyEquivalent = sel_registerName("initWithTitle:action:keyEquivalent:");
+	SEL sel_addItem = sel_registerName("addItem:");
+	SEL sel_setSubmenu = sel_registerName("setSubmenu:");
+	SEL sel_separatorItem = sel_registerName("separatorItem");
+	SEL sel_setKeyEquivalentModifierMask = sel_registerName("setKeyEquivalentModifierMask:");
 
-	id str_appname = [[NSProcessInfo processInfo] processName];
-	id str_about = [NSString stringWithUTF8String:"About "];
-	id str_about_app = [str_about stringByAppendingString:str_appname];
-	id str_quit = [NSString stringWithUTF8String:"Quit "];
-	id str_quit_app = [str_quit stringByAppendingString:str_appname];
+	Class class_NSString = objc_getClass("NSString");
+	SEL sel_stringWithUTF8String = sel_registerName("stringWithUTF8String:");
+	SEL sel_stringByAppendingString = sel_registerName("stringByAppendingString:");
 
-	id menuitem_about = [[NSMenuItem alloc] initWithTitle:str_about_app action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
-	[menu_app addItem:menuitem_about];
+	Class class_NSProcessInfo = objc_getClass("NSProcessInfo");
+	SEL sel_processInfo = sel_registerName("processInfo");
+	SEL sel_processName = sel_registerName("processName");
 
-	[menu_app addItem:[NSMenuItem separatorItem]];
+	SEL sel_orderFrontStandardAboutPanel = sel_registerName("orderFrontStandardAboutPanel:");
+	SEL sel_toggleFullScreen = sel_registerName("toggleFullScreen:");
+	SEL sel_terminate = sel_registerName("terminate:");
 
-	id menuitem_fullscreen = [[NSMenuItem alloc] initWithTitle:@"" action:@selector(toggleFullScreen:) keyEquivalent:@"f"];
-	[menuitem_fullscreen setKeyEquivalentModifierMask:NSEventModifierFlagCommand | NSEventModifierFlagControl];
-	[menu_app addItem:menuitem_fullscreen];
+	// create the needed strings
+//	id str_appname = [[NSProcessInfo processInfo] processName];
+	id obj_processInfo = objc_msgSend(class_NSProcessInfo, sel_processInfo);
+	id str_appname = objc_msgSend(obj_processInfo, sel_processName);
 
-	[menu_app addItem:[NSMenuItem separatorItem]];
+	id str_about = objc_msgSend(class_NSString, sel_stringWithUTF8String, "About ");
+	id str_about_app = objc_msgSend(str_about, sel_stringByAppendingString, str_appname);
+	id str_quit = objc_msgSend(class_NSString, sel_stringWithUTF8String, "Quit ");
+	id str_quit_app = objc_msgSend(str_quit, sel_stringByAppendingString, str_appname);
+	id str_hotkey_fullscreen = objc_msgSend(class_NSString, sel_stringWithUTF8String, "f");
+	id str_hotkey_quit = objc_msgSend(class_NSString, sel_stringWithUTF8String, "q");
+	id str_empty = objc_msgSend(class_NSString, sel_stringWithUTF8String, "");
 
-	id menuitem_quit = [[NSMenuItem alloc] initWithTitle:str_quit_app action:@selector(terminate:) keyEquivalent:@"q"];
-	[menu_app addItem:menuitem_quit];
+	// prepare the menu objects
+//	id menubar = [[NSMenu alloc] init];
+	id menubar = objc_msgSend(class_NSMenu, sel_alloc);
+	objc_msgSend(menubar, sel_init);
+//	id menubaritem_app = [[NSMenuItem alloc] init];
+	id menubaritem_app = objc_msgSend(class_NSMenuItem, sel_alloc);
+	objc_msgSend(menubaritem_app, sel_init);
+//	[menubar addItem:menubaritem_app];
+	objc_msgSend(menubar, sel_addItem, menubaritem_app);
+//	[NSApp setMainMenu:menubar];
+	objc_msgSend(NSApp, sel_setMainMenu, menubar);
+//	id menu_app = [[NSMenu alloc] init];
+	id menu_app = objc_msgSend(class_NSMenu, sel_alloc);
+	objc_msgSend(menu_app, sel_init);
 
-	[menubaritem_app setSubmenu:menu_app];
+
+	// add the menu items
+//	id menuitem_about = [[NSMenuItem alloc] initWithTitle:str_about_app action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:str_empty];
+	id menuitem_about = objc_msgSend(class_NSMenuItem, sel_alloc);	
+	objc_msgSend(menuitem_about, sel_initWithTitle_action_keyEquivalent, str_about_app, sel_orderFrontStandardAboutPanel, str_empty);
+//	[menu_app addItem:menuitem_about];
+	objc_msgSend(menu_app, sel_addItem, menuitem_about);
+
+//	[menu_app addItem:[NSMenuItem separatorItem]];
+	id separator1 = objc_msgSend(class_NSMenuItem, sel_separatorItem);
+	objc_msgSend(menu_app, sel_addItem, separator1);
+
+//	id menuitem_fullscreen = [[NSMenuItem alloc] initWithTitle:str_empty action:@selector(toggleFullScreen:) keyEquivalent:@"f"];
+	id menuitem_fullscreen = objc_msgSend(class_NSMenuItem, sel_alloc);	
+	objc_msgSend(menuitem_fullscreen, sel_initWithTitle_action_keyEquivalent, str_empty, sel_toggleFullScreen, str_hotkey_fullscreen);
+//	[menuitem_fullscreen setKeyEquivalentModifierMask:NSEventModifierFlagCommand | NSEventModifierFlagControl];
+	objc_msgSend(menuitem_fullscreen, sel_setKeyEquivalentModifierMask, (1 << 20) | (1 << 18));
+//	[menu_app addItem:menuitem_fullscreen];
+	objc_msgSend(menu_app, sel_addItem, menuitem_fullscreen);
+
+//	[menu_app addItem:[NSMenuItem separatorItem]];
+	id separator2 = objc_msgSend(class_NSMenuItem, sel_separatorItem);
+	objc_msgSend(menu_app, sel_addItem, separator2);
+
+//	id menuitem_quit = [[NSMenuItem alloc] initWithTitle:str_quit_app action:@selector(terminate:) keyEquivalent:@"q"];
+	id menuitem_quit = objc_msgSend(class_NSMenuItem, sel_alloc);	
+	objc_msgSend(menuitem_quit, sel_initWithTitle_action_keyEquivalent, str_quit_app, sel_terminate, str_hotkey_quit);
+//	[menu_app addItem:menuitem_quit];
+	objc_msgSend(menu_app, sel_addItem, menuitem_quit);
+
+
+//	[menubaritem_app setSubmenu:menu_app];
+	objc_msgSend(menubaritem_app, sel_setSubmenu, menu_app);
 }
 
 
