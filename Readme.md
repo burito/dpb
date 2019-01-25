@@ -17,7 +17,7 @@ Creates the window, with no graphics functionality at all. For testing the windo
 
 gfx_gl
 ------
-Initialises OpenGL, clears the window with Green, draws a blue square that is half the size of the window.
+Initialises OpenGL, clears the window with Green, draws a blue square that is half the size of the window, and a red square around the mouse cursor.
 
 
 
