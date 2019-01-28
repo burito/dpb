@@ -43,6 +43,9 @@ freely, subject to the following restrictions:
 
 int win_width  = 0;	/* used for switching from fullscreen back to window */
 int win_height = 0;
+int win_x = 0;
+int win_y = 0;
+
 int fullscreen=0;
 int fullscreen_toggle=0;
 
@@ -54,36 +57,71 @@ extern unsigned char _binary_lin_icon_head_start[];
 
 Display *display;
 Window window;
+static int screen;
 
 XSetWindowAttributes xwin_attr;
 Cursor cursor_none;
 int opcode;		// for XInput
 
 
-int oldx=0, oldy=0;
+int oldx=20, oldy=20;
 
 void gfx_resize(void);
 
-static void x11_down(void)
+
+//char* x11_error(unsigned long result);
+//char* x11_opcode(unsigned long opcode);
+#include "x11_helper.c"
+
+int x11_error_handler(Display * dpy, XErrorEvent * error)
 {
-	if(fullscreen)
+	log_error("X11: %s() = %s",
+		x11_opcode(error->request_code),
+		x11_error(error->error_code)
+	);
+	return 1;
+}
+
+
+Atom atom_decorations;
+//Atom atom_fullscreen;
+unsigned long hints_decorations[5] = { 0, 0, 0, 0, 0};
+int hints_size = 1;
+
+void x11_fullscreen_init(void)
+{
+/*	atom_decorations = XInternAtom(display, "_NET_WM_STATE", True);
+	if(atom_decorations != None)
 	{
-		XUndefineCursor(display, window);
-		XDestroyWindow(display, window);
-		XUngrabKeyboard(display, CurrentTime);
-		vid_width = win_width;
-		vid_height = win_height;
+		log_debug("NET_WM_STATE method");
+		atom_fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", True);
+		if(atom_decorations == None)
+			log_warning("problem");
+
+		return;
 	}
-	else
+*/	atom_decorations = XInternAtom(display, "_MOTIF_WM_HINTS", True);
+	if(atom_decorations != None)
 	{
-		XWindowAttributes attr;
-		XGetWindowAttributes(display, window, &attr);
-		oldx = attr.x; oldy = attr.y;
-		XDestroyWindow(display, window);
-		win_width = vid_width;
-		win_height = vid_height;
+		log_debug("Motif method");
+		hints_decorations[0] = 2;
+		hints_size = 5;
+		return;
 	}
-//	XCloseDisplay(display);
+	atom_decorations = XInternAtom(display, "KWM_WIN_DECORATION", True);
+	if(atom_decorations != None)
+	{
+		log_debug("KWM method");
+		hints_decorations[0] = 2; // KDE_tinyDecoration
+		return;
+	}
+	atom_decorations = XInternAtom(display, "_WIN_HINTS", True);
+	if(atom_decorations != None)
+	{
+		log_debug("GNOME method");
+		return;
+	}
+
 }
 
 
@@ -113,19 +151,21 @@ static void x11_window(void)
 //				vid_width/2, vid_height/2);
 	XGrabKeyboard(display, window, True,
 		GrabModeAsync, GrabModeAsync, CurrentTime);
-//		XGrabPointer(display, window, True,
-//				PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-//				GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
-//		XDefineCursor(display, window, cursor_none);
+//	XGrabPointer(display, window, True,
+//			PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+//			GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
+//	XDefineCursor(display, window, cursor_none);
 
 	}
 	else
 */
+	XSetErrorHandler(x11_error_handler);
+	int result;
 	xwin_attr.override_redirect = False;
 	int screen = DefaultScreen(display);
 
 	window = XCreateWindow(display, RootWindow(display, screen),
-		oldx, oldy, vid_width, vid_height, 0,
+		0, 0, vid_width, vid_height, 0,
 		DefaultDepth(display, screen), InputOutput, DefaultVisual(display, screen),
 		CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,
 		&xwin_attr);
@@ -133,26 +173,20 @@ static void x11_window(void)
 	Atom net_wm_icon = XInternAtom(display, "_NET_WM_ICON", False);
 	Atom cardinal = XInternAtom(display, "CARDINAL", False);
 	int icon_length = 2 + 256 * 256;
-	XChangeProperty(display, window, net_wm_icon, cardinal, 32,
+	result = XChangeProperty(display, window, net_wm_icon, cardinal, 32,
 		PropModeReplace, _binary_lin_icon_head_start, icon_length);
+	if(result != 1)log_error("XChangeProperty() = %s", x11_error(result));
+
 
 	// I will handle quit messages
 	Atom delwm = XInternAtom(display, "WM_DELETE_WINDOW", False);
-	XSetWMProtocols(display, window, &delwm, 1);
+	result = XSetWMProtocols(display, window, &delwm, 1);
+	if(result != 1)log_error("XSetWMProtocols() = %s", x11_error(result));
 
 	// My window shall be named...
-//	XSetWMProperties(display, window, "Kittens", "Kitteh", NULL, 0, NULL, NULL, NULL);
 	XSetStandardProperties(display, window, binary_name, binary_name, None, NULL, 0, NULL);
+//	XSetWMProperties(display, window, binary_name, binary_name, NULL, 0, NULL, NULL, NULL);
 	XMapRaised(display, window);
-
-	if(fullscreen)
-	{
-		Atom atoms[2] = { XInternAtom(display,
-			"_NET_WM_STATE_FULLSCREEN", False), None };
-		XChangeProperty(display, window,
-		XInternAtom(display, "_NET_WM_STATE", False), XA_ATOM, 32,
-		PropModeReplace, (unsigned char*)atoms, 1);
-	}
 
 	gfx_resize();
 }
@@ -169,10 +203,8 @@ static void x11_init(void)
 	sys_width = XWidthOfScreen(screen_ptr);
 	sys_height = XHeightOfScreen(screen_ptr);
 
-	int screen_id = DefaultScreen(display);
-
 	memset(&xwin_attr, 0, sizeof(XSetWindowAttributes));
-	int screen = DefaultScreen(display);
+	screen = DefaultScreen(display);
 	xwin_attr.colormap = XCreateColormap(display,
 	RootWindow(display, screen), DefaultVisual(display, screen), AllocNone);
 
@@ -195,8 +227,11 @@ static void x11_init(void)
 		return;
 	}
 
-
+	x11_fullscreen_init();
 }
+
+
+
 
 
 static void handle_events(void)
@@ -326,18 +361,83 @@ static void handle_events(void)
 
 	if(fullscreen_toggle)
 	{
-		x11_down();
 		fullscreen_toggle = 0;
 		fullscreen = !fullscreen;
 
-		x11_window();
+		if( fullscreen )
+		{
+			log_debug("enter fullscreen");
+			// https://stackoverflow.com/a/23940869
+
+
+//			XUnmapWindow(display, window);
+//			XMapWindow(display, window);
+			int x, y;
+			Window child;
+			XWindowAttributes xwa;
+			XTranslateCoordinates( display, RootWindow(display, screen), window, 0, 0, &x, &y, &child );
+			XGetWindowAttributes( display, window, &xwa );
+
+			log_debug("pos = (%d, %d) size = (%d, %d)", xwa.x, xwa.y, xwa.width, xwa.height);
+			log_debug("xy = (%d, %d)", x, y);
+
+
+			win_x =  - x;
+			win_y = - y;
+			XGetWindowAttributes( display, window, &xwa );
+			win_width = xwa.width;
+			win_height = xwa.height;
+			log_debug("pos = (%d, %d) size = (%d, %d)", xwa.x, xwa.y, xwa.width, xwa.height);
+			log_debug("xy = (%d, %d)", x, y);
+
+			log_debug("win_xy = (%d, %d)", win_x, win_y);
+
+			XFlush(display);
+			XChangeProperty( display, window, atom_decorations, atom_decorations, 32, PropModeReplace, (unsigned char*)&hints_decorations, hints_size);
+//			Atom atom_list[] = { atom_fullscreen };
+//			XChangeProperty( display, window, atom_decorations, XA_ATOM, 32, PropModeReplace, (unsigned char*)atom_list, 1);
+//			XSetTransientForHint(display, window, RootWindow(display, screen));
+			XFlush(display);
+
+			XMoveResizeWindow(display, window, 0, 0, sys_width, sys_height);
+
+//			XMoveWindow(display, window, 0, 0);
+//			XResizeWindow(display, window, sys_width, sys_height);
+
+//			XRaiseWindow(display, window);
+
+//			XSetInputFocus(display, window, RevertToParent, CurrentTime);
+
+		}
+		else
+		{
+			log_debug("exit fullscreen");
+
+//			XWindowAttributes xwa;
+//			XGetWindowAttributes(display, window, &xwa);
+//			log_debug("pos = (%d, %d) size = (%d, %d)", xwa.x, xwa.y, xwa.width, xwa.height);
+
+//			XFlush(display);
+
+			XDeleteProperty(display, window, atom_decorations);
+//			XFlush(display);
+
+			XMoveResizeWindow(display, window, win_x, win_y, win_width, win_height);
+
+//			XResizeWindow(display, window, win_width, win_height);
+//			XMoveWindow(display, window, win_x, win_y);
+
+
+		}
+
+
 	}
 }
 
 
 static void x11_end(void)
 {
-	x11_down();
+	XDestroyWindow(display, window);
 	XCloseDisplay(display);
 }
 
