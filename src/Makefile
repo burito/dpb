@@ -95,7 +95,7 @@ $(LIN_DIR)/icon.argb: $(LIN_DIR)/icon.rgba $(LIN_DIR)/x11icon
 $(LIN_DIR)/icon.head: $(LIN_DIR)/icon.argb
 	printf "\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00" | cat - $^ > $@
 $(LIN_DIR)/xicon.o: $(LIN_DIR)/icon.head
-	ld -r -b binary $^ -o $@
+	(cd $(BUILD_DIR) && ld -r -b binary lin/icon.head -o lin/xicon.o)
 # end linux icon craziness
 
 # generate the Apple Icon file from src/Icon.png

@@ -50,7 +50,7 @@ int fullscreen_toggle=0;
 //////// X11 OpenGL window setup
 ///////////////////////////////////////////////////////////////////////////////
 
-extern unsigned char _binary_build_lin_icon_head_start[];
+extern unsigned char _binary_lin_icon_head_start[];
 
 Display *display;
 Window window;
@@ -134,7 +134,7 @@ static void x11_window(void)
 	Atom cardinal = XInternAtom(display, "CARDINAL", False);
 	int icon_length = 2 + 256 * 256;
 	XChangeProperty(display, window, net_wm_icon, cardinal, 32,
-		PropModeReplace, _binary_build_lin_icon_head_start, icon_length);
+		PropModeReplace, _binary_lin_icon_head_start, icon_length);
 
 	// I will handle quit messages
 	Atom delwm = XInternAtom(display, "WM_DELETE_WINDOW", False);
