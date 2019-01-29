@@ -19,6 +19,23 @@ gfx_gl
 ------
 Initialises OpenGL, clears the window with Green, draws a blue square that is half the size of the window, and a red square around the mouse cursor.
 
+Build Environment
+-----------------
+### Windows
+* Install [mingw-w64-install.exe](http://sourceforge.net/projects/mingw-w64/files/) 8.1.0-x86_64-posix-seh
+* Add its ```bin``` directory to your path
+* Install current GPU drivers
+	* Nvidia 417.35
+* Install [ImageMagick](http://www.imagemagick.org/script/download.php#windows)
+
+### Linux
+* Install current GPU drivers and compiler
+	* ```add-apt-repository ppa:graphics-drivers/ppa```
+	* ```apt-get update```
+	* ```apt-get install nvidia-410 vulkan-utils build-essential clang imagemagick```
+
+### MacOS
+* Install XCode
 
 
 Submodules / Credits
