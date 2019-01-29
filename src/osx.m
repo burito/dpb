@@ -263,7 +263,32 @@ static void mouse_move(NSEvent * theEvent)
 		bit=1;
 	case NSEventTypeKeyUp:
 		keys[theEvent.keyCode] = bit;
-		
+
+	case NSEventTypeFlagsChanged:
+		for(int i = 0; i<24; i++)
+		{
+			int bit = !!(theEvent.modifierFlags & (1 << i));
+			switch(i) {
+			case   0: keys[KEY_LCONTROL] = bit; break;
+			case   1: keys[KEY_LSHIFT] = bit; break;
+			case   2: keys[KEY_RSHIFT] = bit; break;
+			case   3: keys[KEY_LLOGO] = bit; break;
+			case   4: keys[KEY_RLOGO] = bit; break;
+			case   5: keys[KEY_LALT] = bit; break;
+			case   6: keys[KEY_RALT] = bit; break;
+			case   8: break; // Always on?
+			case  13: keys[KEY_RCONTROL] = bit; break;
+			case  16: keys[KEY_CAPSLOCK] = bit; break;
+			case  17: break; // AllShift
+			case  18: break; // AllCtrl
+			case  19: break; // AllAlt
+			case  20: break; // AllLogo
+			case  23: keys[KEY_FN] = bit; break;
+			default: break;
+			}
+		}
+		break;		
+
 	default:
 		break;
 	}
