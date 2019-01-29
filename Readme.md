@@ -32,7 +32,7 @@ Build Environment
 * Install current GPU drivers and compiler
 	* ```add-apt-repository ppa:graphics-drivers/ppa```
 	* ```apt-get update```
-	* ```apt-get install nvidia-410 vulkan-utils build-essential clang imagemagick```
+	* ```apt-get install nvidia-410 vulkan-utils build-essential clang imagemagick libx11-dev libxi-dev```
 
 ### MacOS
 * Install XCode
