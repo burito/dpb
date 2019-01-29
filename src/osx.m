@@ -193,6 +193,15 @@ void sys_menu_init(void)
 
 static void mouse_move(NSEvent * theEvent)
 {
+	NSWindow * currentWindow = [NSApp keyWindow];
+	NSRect adjustFrame = [[currentWindow contentView] frame];
+	NSPoint p = [currentWindow mouseLocationOutsideOfEventStream];
+	NSRect r = {p.x, p.y, 0, 0};
+	r = [[currentWindow contentView] convertRectToBacking:r];
+	mouse_x = r.origin.x;
+	mouse_y = vid_height-r.origin.y;
+//	log_info("win = (%d, %d) mouse = (%d, %d)", vid_width, vid_height, mouse_x, mouse_y);
+	return;
 	// TODO: this is broken
 	mouse_x = theEvent.locationInWindow.x * sys_dpi;
 	mouse_y = vid_height - theEvent.locationInWindow.y * sys_dpi;
@@ -292,7 +301,7 @@ int main(int argc, char * argv[])
 	[window setTitle: ns_binary_name];
 
 	[window makeKeyAndOrderFront:window];
-
+	[NSApp activateIgnoringOtherApps:YES];	// brings app to the front
 	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
 	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
 	osx_view_init();
@@ -302,6 +311,7 @@ int main(int argc, char * argv[])
 		log_info("Shutdown on : Init Failed");
 	}
 	CVDisplayLinkStart(_displayLink);
+	sys_dpi = [window backingScaleFactor];
 
 	[myapp run];
 	[myapp setDelegate:nil];
