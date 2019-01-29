@@ -259,6 +259,11 @@ static void mouse_move(NSEvent * theEvent)
 		mouse[0] = 0;
 		break;
 
+	case NSEventTypeKeyDown:
+		bit=1;
+	case NSEventTypeKeyUp:
+		keys[theEvent.keyCode] = bit;
+		
 	default:
 		break;
 	}
