@@ -1,4 +1,5 @@
 #include "global.h"
+#include "log.h"
 
 int main_init(int argc, char *argv[])
 {
@@ -8,7 +9,11 @@ int main_init(int argc, char *argv[])
 
 void main_loop(void)
 {
-
+	if(keys[KEY_ESCAPE])
+	{
+		log_info("Shutdown on : Button press (ESC)");
+		killme=1;
+	}
 }
 
 void main_end(void)

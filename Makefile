@@ -4,6 +4,8 @@ BUILD_DIR = build
 default: all
 
 all: gfx_null gfx_gl
+.PHONY: default all gfx_null gfx_gl
+
 
 gfx_null:
 	$(MAKE) -f test/gfx_null.Makefile

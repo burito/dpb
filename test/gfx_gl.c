@@ -21,6 +21,12 @@ int main_init(int argc, char *argv[])
 
 void main_loop(void)
 {
+	if(keys[KEY_ESCAPE])
+	{
+		log_info("Shutdown on : Button press (ESC)");
+		killme=1;
+	}
+	
 	glClearColor(0,1,0,1);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glColor4f(0,0,1,1);
