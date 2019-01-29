@@ -19,7 +19,7 @@ test_3dmaths.exe: $(BUILD_DIR)/3dmaths.o $(BUILD_DIR)/3dmaths_test.o
 
 
 clean:
-	@rm -rf $(BUILD_DIR) gfx_*
+	@rm -rf $(BUILD_DIR) gfx_* *.exe *.bin *.app
 
 
 # Create build directories
