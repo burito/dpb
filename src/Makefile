@@ -4,6 +4,7 @@ UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
 # MacOS
 GLSLANG = deps/vulkan-lib/mac/glslangValidator
+PLATFORM = mac
 CC = clang -g
 default: $(BINARY_NAME).app
 
@@ -27,12 +28,14 @@ endif # ImageMagick check done!
 ifeq ($(UNAME), Linux)
 # Linux
 GLSLANG = deps/vulkan-lib/lin/glslangValidator
+PLATFORM = lin
 CC = clang -g
 default: $(BINARY_NAME)
 
 else
 # Windows
 GLSLANG = deps/vulkan-lib/win/glslangValidator.exe
+PLATFORM = win
 WINDRES = windres
 CC = gcc -g
 default: $(BINARY_NAME).exe
@@ -45,6 +48,8 @@ VPATH += $(BUILD_DIR)
 WIN_DIR = $(BUILD_DIR)/win
 LIN_DIR = $(BUILD_DIR)/lin
 MAC_DIR = $(BUILD_DIR)/mac
+
+OUT_DIR = $(BUILD_DIR)/$(PLATFORM)
 
 $(shell mkdir -p $(WIN_DIR) $(LIN_DIR) $(MAC_DIR))
 
