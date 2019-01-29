@@ -83,82 +83,40 @@ int x11_error_handler(Display * dpy, XErrorEvent * error)
 }
 
 
-Atom atom_decorations;
-//Atom atom_fullscreen;
-unsigned long hints_decorations[5] = { 0, 0, 0, 0, 0};
-int hints_size = 1;
+static Atom atom_net_wm_state;
+static Atom atom_net_wm_state_fullscreen;
+static XEvent xevent_fullscreen;
 
 void x11_fullscreen_init(void)
 {
-/*	atom_decorations = XInternAtom(display, "_NET_WM_STATE", True);
-	if(atom_decorations != None)
+	atom_net_wm_state = XInternAtom(display, "_NET_WM_STATE", True);
+	if(atom_net_wm_state == None)
 	{
-		log_debug("NET_WM_STATE method");
-		atom_fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", True);
-		if(atom_decorations == None)
-			log_warning("problem");
+		log_warning("_NET_WM_STATE");
+		return;
+	}
+	atom_net_wm_state_fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", True);
+	if(atom_net_wm_state_fullscreen == None)
+	{
+		log_debug("_NET_WM_STATE_FULLSCREEN");
+		return;
+	}
 
-		return;
-	}
-*/	atom_decorations = XInternAtom(display, "_MOTIF_WM_HINTS", True);
-	if(atom_decorations != None)
-	{
-		log_debug("Motif method");
-		hints_decorations[0] = 2;
-		hints_size = 5;
-		return;
-	}
-	atom_decorations = XInternAtom(display, "KWM_WIN_DECORATION", True);
-	if(atom_decorations != None)
-	{
-		log_debug("KWM method");
-		hints_decorations[0] = 2; // KDE_tinyDecoration
-		return;
-	}
-	atom_decorations = XInternAtom(display, "_WIN_HINTS", True);
-	if(atom_decorations != None)
-	{
-		log_debug("GNOME method");
-		return;
-	}
+	xevent_fullscreen.type = ClientMessage;
+	xevent_fullscreen.xclient.window = window;
+	xevent_fullscreen.xclient.message_type = atom_net_wm_state;
+	xevent_fullscreen.xclient.format = 32;
+	xevent_fullscreen.xclient.data.l[0] = 1;
+	xevent_fullscreen.xclient.data.l[1] = atom_net_wm_state_fullscreen;
+	xevent_fullscreen.xclient.data.l[2] = 0;
+	xevent_fullscreen.xclient.data.l[3] = 0;
+	xevent_fullscreen.xclient.data.l[4] = 0;
 
 }
 
 
 static void x11_window(void)
 {
-/*	if(fullscreen)
-	{
-	XWindowAttributes attr;
-	Window root = DefaultRootWindow(display);
-	XGetWindowAttributes(display, root, &attr);
-
-	vid_width = attr.width;
-	vid_height = attr.height;
-
-	xwin_attr.override_redirect = True;
-	window = XCreateWindow(display, RootWindow(display, xvis->screen),
-		0, 0, vid_width, vid_height, 0, xvis->depth, InputOutput,
-		xvis->visual, CWBorderPixel | CWColormap | CWEventMask
-		| CWOverrideRedirect
-		, &xwin_attr);
-
-
-	XMapRaised(display, window);
-//		window = DefaultRootWindow(display);
-//		XF86VidModeSetViewPort(display, screen, 0, 0);
-//		XWarpPointer(display, None, window, 0, 0, 0, 0,
-//				vid_width/2, vid_height/2);
-	XGrabKeyboard(display, window, True,
-		GrabModeAsync, GrabModeAsync, CurrentTime);
-//	XGrabPointer(display, window, True,
-//			PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-//			GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
-//	XDefineCursor(display, window, cursor_none);
-
-	}
-	else
-*/
 	XSetErrorHandler(x11_error_handler);
 	int result;
 	xwin_attr.override_redirect = False;
@@ -366,70 +324,14 @@ static void handle_events(void)
 
 		if( fullscreen )
 		{
-			log_debug("enter fullscreen");
-			// https://stackoverflow.com/a/23940869
-
-
-//			XUnmapWindow(display, window);
-//			XMapWindow(display, window);
-			int x, y;
-			Window child;
-			XWindowAttributes xwa;
-			XTranslateCoordinates( display, RootWindow(display, screen), window, 0, 0, &x, &y, &child );
-			XGetWindowAttributes( display, window, &xwa );
-
-			log_debug("pos = (%d, %d) size = (%d, %d)", xwa.x, xwa.y, xwa.width, xwa.height);
-			log_debug("xy = (%d, %d)", x, y);
-
-
-			win_x =  - x;
-			win_y = - y;
-			XGetWindowAttributes( display, window, &xwa );
-			win_width = xwa.width;
-			win_height = xwa.height;
-			log_debug("pos = (%d, %d) size = (%d, %d)", xwa.x, xwa.y, xwa.width, xwa.height);
-			log_debug("xy = (%d, %d)", x, y);
-
-			log_debug("win_xy = (%d, %d)", win_x, win_y);
-
-			XFlush(display);
-			XChangeProperty( display, window, atom_decorations, atom_decorations, 32, PropModeReplace, (unsigned char*)&hints_decorations, hints_size);
-//			Atom atom_list[] = { atom_fullscreen };
-//			XChangeProperty( display, window, atom_decorations, XA_ATOM, 32, PropModeReplace, (unsigned char*)atom_list, 1);
-//			XSetTransientForHint(display, window, RootWindow(display, screen));
-			XFlush(display);
-
-			XMoveResizeWindow(display, window, 0, 0, sys_width, sys_height);
-
-//			XMoveWindow(display, window, 0, 0);
-//			XResizeWindow(display, window, sys_width, sys_height);
-
-//			XRaiseWindow(display, window);
-
-//			XSetInputFocus(display, window, RevertToParent, CurrentTime);
-
+			xevent_fullscreen.xclient.data.l[0] = 1;
+			XSendEvent(display, RootWindow(display, screen), False, SubstructureNotifyMask | SubstructureRedirectMask, &xevent_fullscreen);
 		}
 		else
 		{
-			log_debug("exit fullscreen");
-
-//			XWindowAttributes xwa;
-//			XGetWindowAttributes(display, window, &xwa);
-//			log_debug("pos = (%d, %d) size = (%d, %d)", xwa.x, xwa.y, xwa.width, xwa.height);
-
-//			XFlush(display);
-
-			XDeleteProperty(display, window, atom_decorations);
-//			XFlush(display);
-
-			XMoveResizeWindow(display, window, win_x, win_y, win_width, win_height);
-
-//			XResizeWindow(display, window, win_width, win_height);
-//			XMoveWindow(display, window, win_x, win_y);
-
-
+			xevent_fullscreen.xclient.data.l[0] = 0;
+			XSendEvent(display, RootWindow(display, screen), False, SubstructureNotifyMask | SubstructureRedirectMask, &xevent_fullscreen);
 		}
-
 
 	}
 }
