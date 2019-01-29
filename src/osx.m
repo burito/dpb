@@ -193,21 +193,15 @@ void sys_menu_init(void)
 
 static void mouse_move(NSEvent * theEvent)
 {
-	NSWindow * currentWindow = [NSApp keyWindow];
-	NSRect adjustFrame = [[currentWindow contentView] frame];
-	NSPoint p = [currentWindow mouseLocationOutsideOfEventStream];
+	NSPoint p = [window mouseLocationOutsideOfEventStream];
 	NSRect r = {p.x, p.y, 0, 0};
-	r = [[currentWindow contentView] convertRectToBacking:r];
-	mouse_x = r.origin.x;
-	mouse_y = vid_height-r.origin.y;
+	p = [window convertRectToBacking:r].origin;
+	p.y = vid_height - p.y;
+	mickey_x -= p.x - mouse_x;
+	mickey_y -= p.y - mouse_y;
+	mouse_x = p.x;
+	mouse_y = p.y;	
 //	log_info("win = (%d, %d) mouse = (%d, %d)", vid_width, vid_height, mouse_x, mouse_y);
-	return;
-	// TODO: this is broken
-	mouse_x = theEvent.locationInWindow.x * sys_dpi;
-	mouse_y = vid_height - theEvent.locationInWindow.y * sys_dpi;
-//	log_debug("mouse = (%d, %d) dpi = %f", mouse_x, mouse_y, sys_dpi);
-	mickey_x -= theEvent.deltaX * sys_dpi;
-	mickey_y -= theEvent.deltaY * sys_dpi;
 }
 
 @implementation MyApp
@@ -341,8 +335,19 @@ int main(int argc, char * argv[])
 		log_info("Shutdown on : Init Failed");
 	}
 	CVDisplayLinkStart(_displayLink);
+
 	sys_dpi = [window backingScaleFactor];
 
+/*	// want to do this in a main loop
+	NSPoint p = [window mouseLocationOutsideOfEventStream];
+	NSRect r = {p.x, p.y, 0, 0};
+	p = [window convertRectToBacking:r].origin;
+	p.y = vid_height - p.y;
+	mickey_x -= p.x - mouse_x;
+	mickey_y -= p.y - mouse_y;
+	mouse_x = p.x;
+	mouse_y = p.y;
+*/
 	[myapp run];
 	[myapp setDelegate:nil];
 	CVDisplayLinkRelease(_displayLink);
