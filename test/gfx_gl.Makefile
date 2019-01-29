@@ -3,7 +3,7 @@ COPYRIGHT = 2019
 DESCRIPTION = OpenGL Test
 BINARY_NAME = gfx_gl
 CFLAGS = -std=c11 -Ideps/include -Isrc -DOLD_OPENGL
-OBJS =  log.o global.o version.o gl_test.o
+OBJS =  log.o global.o version.o gfx_gl.o
 VPATH = src test deps
 
 WIN_LIBS = -luser32 -lshell32 -lopengl32 -lgdi32
