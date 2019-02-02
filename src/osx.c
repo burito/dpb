@@ -193,13 +193,15 @@ void windowDidResize(id self, SEL _sel, id nofitication)
 	SEL sel_backingScaleFactor = sel_registerName("backingScaleFactor");
 	SEL sel_contentView = sel_registerName("contentView");
 //	sys_dpi = [window backingScaleFactor];
-//	sys_dpi = objc_msgSend(window, sel_backingScaleFactor);
+	sys_dpi = ((CGFloat (*)(id, SEL))objc_msgSend)(window, sel_backingScaleFactor);
 //	CGSize box = [window contentView].frame.size;
-//	id view = objc_msgSend(window, sel_contentView);
+	id view = objc_msgSend(window, sel_contentView);
+	SEL sel_frame = sel_registerName("frame");
+	CGRect r = ((CGRect (*)(id, SEL))objc_msgSend_stret)(view, sel_frame);
 
-//	vid_width = box.width * sys_dpi;
-//	vid_height = box.height * sys_dpi;
-//	gfx_resize();
+	vid_width = r.size.width * sys_dpi;
+	vid_height = r.size.height * sys_dpi;
+	gfx_resize();
 }
 
 
@@ -412,11 +414,12 @@ int main(int argc, char * argv[])
 	SEL sel_makeKeyAndOrderFront = sel_registerName("makeKeyAndOrderFront:");
 	objc_msgSend(window, sel_makeKeyAndOrderFront, window);
 
-//	[NSApp activateIgnoringOtherApps:YES];	// brings app to the front
+	// brings app to the front
+//	[NSApp activateIgnoringOtherApps:YES];
 	SEL sel_activateIgnoringOtherApps = sel_registerName("activateIgnoringOtherApps:");
 	objc_msgSend(NSApp, sel_activateIgnoringOtherApps, YES);
 
-
+	// Use a CVDisplayLink to toggle a mutex, to allow VSync
 	pthread_mutex_lock(&mutex_vsync);
 	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
 	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
@@ -428,14 +431,8 @@ int main(int argc, char * argv[])
 		killme = 1;
 		log_info("Shutdown on : Init Failed");
 	}
-//	CVDisplayLinkStart(_displayLink);
-
-//	sys_dpi = [window backingScaleFactor];
-
 
 //	[NSApp run];
-
-
 
 	SEL sel_nextEventMatchingMask_untilDate_inMode_dequeue = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 	Class class_NSDate = objc_getClass("NSDate");
@@ -455,21 +452,25 @@ int main(int argc, char * argv[])
 
 	while(!killme)
 	{
-		id event = objc_msgSend(NSApp, sel_nextEventMatchingMask_untilDate_inMode_dequeue, NSUIntegerMax, distant_past, NSDefaultRunLoopMode, YES);
-		while(event)
+		while(1)
 		{
+			id event = objc_msgSend(NSApp, sel_nextEventMatchingMask_untilDate_inMode_dequeue, NSUIntegerMax, distant_past, NSDefaultRunLoopMode, YES);
+			if(!event)break;
 			handle_event(event);
 			objc_msgSend(NSApp, sel_sendEvent, event);
-			event = objc_msgSend(NSApp, sel_nextEventMatchingMask_untilDate_inMode_dequeue, NSUIntegerMax, distant_past, NSDefaultRunLoopMode, YES);
 		}
-
-		// want to do this in a main loop
+		
+		// get the current mouse position
 //		NSPoint p = [window mouseLocationOutsideOfEventStream];
 		CGPoint p = ((CGPoint (*)(id, SEL))objc_msgSend)(window, sel_mouseLocationOutsideofEventStream);
 		CGRect r = {p.x, p.y, 0, 0};
 //		r = [window convertRectToBacking:r];
 		r = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)(window, sel_convertRectToBacking, r);
 
+		// get the current scaling setting, incase it has been changed
+		sys_dpi = ((CGFloat (*)(id, SEL))objc_msgSend)(window, sel_backingScaleFactor);
+
+		// convert the mouse position to what is expected
 		p.x = r.origin.x;
 		p.y = vid_height - r.origin.y;
 		mickey_x -= p.x - mouse_x;
@@ -477,10 +478,10 @@ int main(int argc, char * argv[])
 		mouse_x = p.x;
 		mouse_y = p.y;
 
-		sys_dpi = ((CGFloat (*)(id, SEL))objc_msgSend)(window, sel_backingScaleFactor);
 
 		main_loop();
 	}
+	CVDisplayLinkStop(_displayLink);
 
 	main_end();
 
