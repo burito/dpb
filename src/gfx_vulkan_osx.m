@@ -34,19 +34,6 @@ void * pView = NULL;
 @end
 
 
-CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
-{
-//	log_trace("View:DisplayLinkCallback");
-	main_loop();
-
-	if(killme != 0)
-	{
-		[NSApp terminate:nil];
-	}
-
-	return kCVReturnSuccess;
-}
-
 void osx_view_init(void)
 {
 	NSView * view = [[View alloc] init];
