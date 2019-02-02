@@ -10,6 +10,7 @@
 #include "global.h"
 #include "log.h"
 
+#include <pthread.h>
 
 #include <objc/objc.h>
 #include <objc/message.h>
@@ -21,67 +22,11 @@
 
 extern id NSApp;
 
-CVDisplayLinkRef _displayLink;
 extern id window;
 static id ns_view;
+static id openGLcontext;
 
-
-char* ns_str(id item)
-{
-	SEL sel_description = sel_registerName("description");
-	SEL sel_cStringUsingEncoding = sel_registerName("cStringUsingEncoding:");
-	// NSUTF8StringEncoding = 4
-	id desc = objc_msgSend(item, sel_description);
-	return (char*)objc_msgSend(desc, sel_cStringUsingEncoding, 4);
-}
-
-
-CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
-{
-//	log_debug("View:DisplayLinkCallback");
-	CGLError result;
-
-//	NSOpenGLContext *glcontext = [ns_view openGLContext];
-	SEL openGLContext = sel_registerName("openGLContext");
-	id glcontext = objc_msgSend(ns_view, openGLContext);
-
-//	CGLContextObj context = [glcontext CGLContextObj];
-	SEL sel_CGLContextObj = sel_registerName("CGLContextObj");
-	CGLContextObj context = (CGLContextObj)objc_msgSend(glcontext, sel_CGLContextObj);
-
-//	log_warning("pf = %s", ns_str(pixelFormat));
-
-	result = CGLLockContext(context);
-	if(result != 0)
-	{
-		log_error("CGLLockContext() = %s", CGLErrorString(result));
-	}
-
-//	[glcontext makeCurrentContext];
-	SEL makeCurrentContext = sel_registerName("makeCurrentContext");
-	objc_msgSend(glcontext, makeCurrentContext);
-	
-	main_loop();
-
-//	[glcontext flushBuffer];
-	SEL flushBuffer = sel_registerName("flushBuffer");
-	objc_msgSend(glcontext, flushBuffer);
-
-	result = CGLUnlockContext(context);
-	if(result != 0)
-	{
-		log_error("CGLLockContext() = %s", CGLErrorString(result));
-	}
-
-	if(killme != 0)
-	{
-//		[NSApp terminate:nil];
-		SEL terminate = sel_registerName("terminate:");
-		objc_msgSend(NSApp, terminate, 0);
-	}
-
-	return kCVReturnSuccess;
-}
+extern pthread_mutex_t mutex_vsync;
 
 void osx_view_init(void)
 {
@@ -130,34 +75,21 @@ void osx_view_init(void)
 	ns_view = view;
 
 //	log_warning("view = %s", ns_str(view));
-	GLint vsync = 0;
 
 //	[view setWantsBestResolutionOpenGLSurface:YES];   // enable retina resolutions
 	SEL setWantsBestResolutionOpenGLSurface = sel_registerName("setWantsBestResolutionOpenGLSurface:");
 	objc_msgSend(view, setWantsBestResolutionOpenGLSurface, YES);
 
-//	sys_dpi = [window backingScaleFactor];
-//	[[view openGLContext] setValues:&vsync forParameter:NSOpenGLCPSwapInterval];
-//	[[view openGLContext] setValues:&vsync forParameter:NSOpenGLContextParameterSwapInterval];
-
 //	CGLContextObj cglContext = [[view openGLContext] CGLContextObj];
-	SEL openGLContext = sel_registerName("openGLContext");
-	SEL sel_CGLContextObj = sel_registerName("CGLContextObj");
-	id view_glcontext = objc_msgSend(view, openGLContext);
-	CGLContextObj cglContext = (CGLContextObj)objc_msgSend(view_glcontext, sel_CGLContextObj);
-//	CGLPixelFormatObj cglPixelFormat = [glpixelformat CGLPixelFormatObj];
-	SEL sel_CGLPixelFormatObj = sel_registerName("CGLPixelFormatObj");
-	CGLPixelFormatObj cglPixelFormat = (CGLPixelFormatObj)objc_msgSend(glpixelformat, sel_CGLPixelFormatObj);
+	SEL sel_openGLContext = sel_registerName("openGLContext");
+	openGLcontext = objc_msgSend(view, sel_openGLContext);
 
-
-	CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext, cglPixelFormat);
-
-//	CVDisplayLinkStart(_displayLink);
 }
 
-
+SEL sel_flushBuffer;
 void gfx_init(void)
 {
+	sel_flushBuffer = sel_registerName("flushBuffer");
 }
 
 void gfx_end(void)
@@ -171,4 +103,9 @@ void gfx_resize(void)
 
 void gfx_swap(void)
 {
+#ifndef VSYNC_OFF
+	pthread_mutex_lock(&mutex_vsync);
+	pthread_mutex_unlock(&mutex_vsync);
+#endif
+	objc_msgSend(openGLcontext, sel_flushBuffer);
 }
