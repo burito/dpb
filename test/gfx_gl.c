@@ -8,19 +8,27 @@
 #include "global.h"
 #include "log.h"
 
+#include <math.h>
 
 void gfx_init(void);
 void gfx_end(void);
 void gfx_swap(void);
 
+
+double time_start;
+int frames = 0;
+
 int main_init(int argc, char *argv[])
 {
 	gfx_init();
+
+	time_start = (double)sys_time() / (double)sys_ticksecond;
 	return 0;
 }
 
 void main_loop(void)
 {
+	glViewport( 0, 0, vid_width, vid_height);
 	// test that the keyboard works
 	if(keys[KEY_ESCAPE])
 	{
@@ -50,7 +58,18 @@ void main_loop(void)
 	glColor4f(1,0,0,1);
 	glRectf( mx-md, my-md, mx+md, my+md);
 
-	
+	double now = (double)sys_time() / (double)sys_ticksecond;
+
+	double pos = sin(fmod(now, 2.0*M_PI));
+	glRectf(-0.95, pos-md, -0.91, pos+md);
+
+	frames ++;
+	if( (now - time_start) > 1.0 )
+	{
+		time_start += 1.0;
+		log_info("fps = %d", frames);
+		frames = 0;
+	}
 
 	// swap the buffer onto the screen
 	gfx_swap();

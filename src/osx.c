@@ -36,8 +36,11 @@ freely, subject to the following restrictions:
 #include <CoreVideo/CVReturn.h>
 #include <CoreVideo/CVDisplayLink.h>
 
+#define LOG_NO_DEBUG
+
 #include "log.h"
 #include "global.h"
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //////// Public Interface to the rest of the program
@@ -57,17 +60,6 @@ id window;
 ///////////////////////////////////////////////////////////////////////////////
 //////// Mac OS X OpenGL window setup
 ///////////////////////////////////////////////////////////////////////////////
-
-pthread_mutex_t mutex_vsync = PTHREAD_MUTEX_INITIALIZER;
-CVDisplayLinkRef _displayLink;
-
-CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
-{
-	pthread_mutex_unlock(&mutex_vsync);
-	usleep(1000);
-	pthread_mutex_lock(&mutex_vsync);
-	return kCVReturnSuccess;
-}
 
 char* ns_str(id item)
 {
@@ -170,7 +162,7 @@ void sys_menu_init(void)
 
 NSUInteger applicationShouldTerminate(id self, SEL _sel, id sender)
 {
-//	log_debug("AppDelegate:applicationsShouldTerminate");
+	log_debug("AppDelegate:applicationsShouldTerminate");
 	if( ! killme )
 		log_info("Shutdown on : App Close");
 	killme = 1;
@@ -180,7 +172,7 @@ NSUInteger applicationShouldTerminate(id self, SEL _sel, id sender)
 
 _Bool windowShouldClose(id self, SEL _sel, id notification)
 {
-//	log_debug("WindowDelegate:windowShouldClose");
+	log_debug("WindowDelegate:windowShouldClose");
 	log_info("Shutdown on : Window close");
 	killme = 1;
 	return true;
@@ -189,7 +181,7 @@ _Bool windowShouldClose(id self, SEL _sel, id notification)
 
 void windowDidResize(id self, SEL _sel, id nofitication)
 {
-//	log_debug("WindowDelegate:windowDidResize");
+	log_debug("WindowDelegate:windowDidResize");
 	SEL sel_backingScaleFactor = sel_registerName("backingScaleFactor");
 	SEL sel_contentView = sel_registerName("contentView");
 //	sys_dpi = [window backingScaleFactor];
@@ -215,6 +207,7 @@ void handle_event(id event)
 // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSEvent_Class/#//apple_ref/c/tdef/NSEventType
 
 	NSUInteger event_type = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_type);
+//	log_info("event = %d", event_type);
 // event codes are defined in...
 // /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSEvent.h
 	int bit=0;
@@ -327,6 +320,11 @@ int main(int argc, char * argv[])
 	SEL sel_sharedApplication = sel_registerName("sharedApplication");
 	objc_msgSend((id)class_NSApplication, sel_sharedApplication);
 
+	// allows keyboard to work without an app bundle
+// 	[NSApplication setActivationPolicy:NSApplicationActivationPolicyRegular];
+	SEL sel_setActivationPolicy = sel_registerName("setActivationPolicy:");
+	objc_msgSend(NSApp, sel_setActivationPolicy, 0);
+
 //	AppDelegate * appd = [[AppDelegate alloc] init];
 	Class class_NSObject = objc_getClass("NSObject");
 	Class class_AppDelegate = objc_allocateClassPair(class_NSObject, "AppDelegate", 0);
@@ -419,12 +417,6 @@ int main(int argc, char * argv[])
 	SEL sel_activateIgnoringOtherApps = sel_registerName("activateIgnoringOtherApps:");
 	objc_msgSend(NSApp, sel_activateIgnoringOtherApps, YES);
 
-	// Use a CVDisplayLink to toggle a mutex, to allow VSync
-	pthread_mutex_lock(&mutex_vsync);
-	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
-	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
-	CVDisplayLinkStart(_displayLink);
-
 	osx_view_init();
 	if( main_init(argc, argv) )
 	{
@@ -459,7 +451,6 @@ int main(int argc, char * argv[])
 			handle_event(event);
 			objc_msgSend(NSApp, sel_sendEvent, event);
 		}
-		
 		// get the current mouse position
 //		NSPoint p = [window mouseLocationOutsideOfEventStream];
 		CGPoint p = ((CGPoint (*)(id, SEL))objc_msgSend)(window, sel_mouseLocationOutsideofEventStream);
@@ -481,7 +472,6 @@ int main(int argc, char * argv[])
 
 		main_loop();
 	}
-	CVDisplayLinkStop(_displayLink);
 
 	main_end();
 

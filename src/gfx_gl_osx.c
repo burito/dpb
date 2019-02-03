@@ -26,7 +26,16 @@ extern id window;
 static id ns_view;
 static id openGLcontext;
 
-extern pthread_mutex_t mutex_vsync;
+pthread_mutex_t mutex_vsync = PTHREAD_MUTEX_INITIALIZER;
+CVDisplayLinkRef _displayLink;
+
+CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
+{
+	pthread_mutex_unlock(&mutex_vsync);
+	usleep(1000);
+	pthread_mutex_lock(&mutex_vsync);
+	return kCVReturnSuccess;
+}
 
 void osx_view_init(void)
 {
@@ -90,10 +99,16 @@ SEL sel_flushBuffer;
 void gfx_init(void)
 {
 	sel_flushBuffer = sel_registerName("flushBuffer");
+	// Use a CVDisplayLink to toggle a mutex, to allow VSync
+	pthread_mutex_lock(&mutex_vsync);
+	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
+	CVDisplayLinkStart(_displayLink);
 }
 
 void gfx_end(void)
 {
+	CVDisplayLinkStop(_displayLink);
 }
 
 void gfx_resize(void)

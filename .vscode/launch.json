@@ -5,10 +5,22 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "(lldb) Launch",
+			"name": "Launch test_3dmaths.exe",
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/test_3dmaths.exe",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": true,
+			"MIMode": "lldb"
+		},
+		{
+			"name": "Launch gfx_gl",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/gfx_gl.app/Contents/MacOS/gfx_gl",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
