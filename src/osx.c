@@ -22,9 +22,6 @@ freely, subject to the following restrictions:
 */
 
 #include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-
 #include <limits.h>
 #include <objc/objc.h>
 #include <objc/message.h>
