@@ -199,7 +199,7 @@ SEL sel_buttonNumber;
 SEL sel_keyCode;
 SEL sel_modifierFlags;
 
-void handle_event(id event)
+int handle_event(id event)
 {
 // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSEvent_Class/#//apple_ref/c/tdef/NSEventType
 
@@ -255,13 +255,27 @@ void handle_event(id event)
 		break;
 
 	case 10: // NSEventTypeKeyDown:
+		{
+			NSUInteger modifier_flags = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_modifierFlags);
+			NSUInteger key_code = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_keyCode);
+			if(modifier_flags & (1<<20))	// any command key
+			{
+				if(modifier_flags & (1<<18))	// any control key
+				{
+					if(key_code == KEY_F)	// cmd + ctrl + f
+						return 0;
+				}
+				if(key_code == KEY_Q)	// cmd + q
+					return 0;
+			}
+		}
 		bit=1;
 	case 11: // NSEventTypeKeyUp:
 		{
 			NSUInteger key_code = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_keyCode);
 			keys[key_code] = bit;
 		}
-		break;
+		return 1;
 
 	case 12: // NSEventTypeFlagsChanged:
 		{
@@ -289,11 +303,12 @@ void handle_event(id event)
 				}
 			}
 		}
-		break;
+		return 1;
 
 	default:
 		break;
 	}
+	return 0;
 }
 
 
@@ -445,8 +460,8 @@ int main(int argc, char * argv[])
 		{
 			id event = objc_msgSend(NSApp, sel_nextEventMatchingMask_untilDate_inMode_dequeue, NSUIntegerMax, distant_past, NSDefaultRunLoopMode, YES);
 			if(!event)break;
-			handle_event(event);
-			objc_msgSend(NSApp, sel_sendEvent, event);
+			int handled = handle_event(event);
+			if(!handled)objc_msgSend(NSApp, sel_sendEvent, event);
 		}
 		// get the current mouse position
 //		NSPoint p = [window mouseLocationOutsideOfEventStream];
@@ -465,7 +480,6 @@ int main(int argc, char * argv[])
 		mickey_y -= p.y - mouse_y;
 		mouse_x = p.x;
 		mouse_y = p.y;
-
 
 		main_loop();
 	}
