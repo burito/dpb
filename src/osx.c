@@ -466,7 +466,7 @@ int main(int argc, char * argv[])
 		// get the current mouse position
 //		NSPoint p = [window mouseLocationOutsideOfEventStream];
 		CGPoint p = ((CGPoint (*)(id, SEL))objc_msgSend)(window, sel_mouseLocationOutsideofEventStream);
-		CGRect r = {p.x, p.y, 0, 0};
+		CGRect r = {{p.x, p.y}, {0, 0}};
 //		r = [window convertRectToBacking:r];
 		r = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)(window, sel_convertRectToBacking, r);
 
