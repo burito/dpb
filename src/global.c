@@ -178,31 +178,31 @@ uint16_t sys_key_modifiers(void)
 {
 	uint16_t modifiers = 0;
 	if( keys[KEY_LSHIFT] ){
-		modifiers &= (KEY_MOD_SHIFT & KEY_MOD_LSHIFT);
+		modifiers |= (KEY_MOD_SHIFT | KEY_MOD_LSHIFT);
 	}
 	if( keys[KEY_RSHIFT] ){
-		modifiers &= (KEY_MOD_SHIFT & KEY_MOD_RSHIFT);
+		modifiers |= (KEY_MOD_SHIFT | KEY_MOD_RSHIFT);
 	}
 	if( keys[KEY_LALT] ){
-		modifiers &= (KEY_MOD_ALT & KEY_MOD_LALT);
+		modifiers |= (KEY_MOD_ALT | KEY_MOD_LALT);
 	}
 	if( keys[KEY_RALT] ){
-		modifiers &= (KEY_MOD_ALT & KEY_MOD_RALT);
+		modifiers |= (KEY_MOD_ALT | KEY_MOD_RALT);
 	}
 	if( keys[KEY_LCONTROL] ){
-		modifiers &= (KEY_MOD_CTRL & KEY_MOD_LCTRL);
+		modifiers |= (KEY_MOD_CTRL | KEY_MOD_LCTRL);
 	}
 	if( keys[KEY_RCONTROL] ){
-		modifiers &= (KEY_MOD_CTRL & KEY_MOD_RCTRL);
+		modifiers |= (KEY_MOD_CTRL | KEY_MOD_RCTRL);
 	}
 	if( keys[KEY_LLOGO] ){
-		modifiers &= (KEY_MOD_LOGO & KEY_MOD_LLOGO);
+		modifiers |= (KEY_MOD_LOGO | KEY_MOD_LLOGO);
 	}
 	if( keys[KEY_RLOGO] ){
-		modifiers &= (KEY_MOD_LOGO & KEY_MOD_RLOGO);
+		modifiers |= (KEY_MOD_LOGO | KEY_MOD_RLOGO);
 	}
 	if( keys[KEY_MENU] ){
-		modifiers &= KEY_MOD_MENU;
+		modifiers |= KEY_MOD_MENU;
 	}
 	return modifiers;
 }
