@@ -247,7 +247,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int modifiers = KEY_MOD_CHAR | sys_key_modifiers();
 
 			int out_char = 0;
-			WideCharToMultiByte(CP_OEMCP, 0, &wParam, 1, &out_char, 1, NULL, NULL);
+			WideCharToMultiByte(CP_OEMCP, 0, (LPWCH)&wParam, 1, (LPSTR)&out_char, 1, NULL, NULL);
 			received_event.type = EVENT_KEY_DOWN;
 			received_event.keycode = scancode;
 			received_event.charcode = out_char;
@@ -281,9 +281,11 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		received_event.charcode = 0;
 		received_event.modifiers = sys_key_modifiers();
 
-		if(received_event.modifiers & KEY_MOD_ALT)
-		if(code == KEY_ENTER && bit == 1)
+		if( (received_event.modifiers & KEY_MOD_ALT) &&
+			(code == KEY_ENTER && bit == 1) )
+		{
 			fullscreen_toggle = 1;
+		}
 		else
 		{
 			sys_event_write(received_event);
