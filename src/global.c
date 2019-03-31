@@ -30,6 +30,7 @@ freely, subject to the following restrictions:
 #include <stdint.h>
 
 #include "global.h"
+#include "log.h"
 
 int killme=0;
 int sys_width  = 1980;	/* dimensions of default screen */
@@ -130,5 +131,79 @@ void sys_browser(char *url)
 }
 #endif
 
+#define SYS_EVENT_MAX 256
+struct sys_event sys_events[SYS_EVENT_MAX];
+uint32_t sys_event_in = 0;
+uint32_t sys_event_out = 0;
 
+void sys_event_init(void)
+{
+	sys_event_in = 0;
+	sys_event_out = 0;
+}
+
+
+int sys_event_read(struct sys_event *event)
+{
+	if(sys_event_in == sys_event_out)return 0;
+	
+	sys_event_out++;
+	if(sys_event_out == SYS_EVENT_MAX)
+	{
+		sys_event_out = 0;
+	}
+	*event = sys_events[sys_event_out];
+	return 1;
+}
+
+int sys_event_write(struct sys_event event)
+{
+	if(sys_event_in == (sys_event_out - 1)) return 0;
+
+	if( ( sys_event_in == (SYS_EVENT_MAX - 1) ) &&
+		sys_event_out == 0 ) return 0;
+	
+	sys_event_in++;
+	if(sys_event_in == SYS_EVENT_MAX)
+	{
+		sys_event_in = 0;
+	}
+
+	sys_events[sys_event_in] = event;
+	return 1;
+}
+
+
+uint16_t sys_key_modifiers(void)
+{
+	uint16_t modifiers = 0;
+	if( keys[KEY_LSHIFT] ){
+		modifiers &= (KEY_MOD_SHIFT & KEY_MOD_LSHIFT);
+	}
+	if( keys[KEY_RSHIFT] ){
+		modifiers &= (KEY_MOD_SHIFT & KEY_MOD_RSHIFT);
+	}
+	if( keys[KEY_LALT] ){
+		modifiers &= (KEY_MOD_ALT & KEY_MOD_LALT);
+	}
+	if( keys[KEY_RALT] ){
+		modifiers &= (KEY_MOD_ALT & KEY_MOD_RALT);
+	}
+	if( keys[KEY_LCONTROL] ){
+		modifiers &= (KEY_MOD_CTRL & KEY_MOD_LCTRL);
+	}
+	if( keys[KEY_RCONTROL] ){
+		modifiers &= (KEY_MOD_CTRL & KEY_MOD_RCTRL);
+	}
+	if( keys[KEY_LLOGO] ){
+		modifiers &= (KEY_MOD_LOGO & KEY_MOD_LLOGO);
+	}
+	if( keys[KEY_RLOGO] ){
+		modifiers &= (KEY_MOD_LOGO & KEY_MOD_RLOGO);
+	}
+	if( keys[KEY_MENU] ){
+		modifiers &= KEY_MOD_MENU;
+	}
+	return modifiers;
+}
 

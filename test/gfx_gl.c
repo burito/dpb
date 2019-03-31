@@ -67,7 +67,7 @@ void main_loop(void)
 	if( (now - time_start) > 1.0 )
 	{
 		time_start += 1.0;
-		log_info("fps = %d", frames);
+//		log_info("fps = %d", frames);
 		frames = 0;
 	}
 

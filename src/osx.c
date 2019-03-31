@@ -201,6 +201,7 @@ SEL sel_modifierFlags;
 
 int handle_event(id event)
 {
+	struct sys_event received_event;
 // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSEvent_Class/#//apple_ref/c/tdef/NSEventType
 
 	NSUInteger event_type = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_type);
@@ -270,10 +271,15 @@ int handle_event(id event)
 			}
 		}
 		bit=1;
+		/* fall through */
 	case 11: // NSEventTypeKeyUp:
 		{
 			NSUInteger key_code = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_keyCode);
 			keys[key_code] = bit;
+
+			received_event.type = bit ? EVENT_KEY_DOWN : EVENT_KEY_UP;
+			received_event.keycode = key_code;
+			sys_event_write(received_event);
 		}
 		return 1;
 

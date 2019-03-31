@@ -32,7 +32,7 @@ freely, subject to the following restrictions:
 #endif
 
 
-extern int killme;		/* global killswitch */
+extern int killme;	/* global killswitch */
 extern int sys_width;	/* dimensions of default screen */
 extern int sys_height;
 extern float sys_dpi;
@@ -71,3 +71,33 @@ extern const char binary_name[];
 
 #include "keyboard.h"
 
+
+#define KEY_MOD_CHAR	(1<<1)
+#define KEY_MOD_SHIFT	(1<<2)
+#define KEY_MOD_LSHIFT	(1<<3)
+#define KEY_MOD_RSHIFT	(1<<4)
+#define KEY_MOD_ALT	(1<<5)
+#define KEY_MOD_LALT	(1<<6)
+#define KEY_MOD_RALT	(1<<7)
+#define KEY_MOD_CTRL	(1<<8)
+#define KEY_MOD_LCTRL	(1<<9)
+#define KEY_MOD_RCTRL	(1<<10)
+#define KEY_MOD_LOGO	(1<<11)
+#define KEY_MOD_LLOGO	(1<<12)
+#define KEY_MOD_RLOGO	(1<<13)
+#define KEY_MOD_MENU	(1<<14)
+
+
+struct sys_event {
+	enum type {
+		EVENT_KEY_DOWN,
+		EVENT_KEY_UP
+	} type;
+	uint32_t charcode;
+	uint16_t keycode;
+	uint16_t modifiers;
+};
+void sys_event_init(void);
+int sys_event_read(struct sys_event *event);
+int sys_event_write(struct sys_event event);
+uint16_t sys_key_modifiers(void);

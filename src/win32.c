@@ -180,6 +180,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int code;
 	int bit=0;
+	struct sys_event received_event;
 	switch(uMsg) {
 	case WM_SYSCOMMAND:
 //		log_debug("WM_SYSCOMMAND\n");
@@ -236,18 +237,65 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		win_resizing = 0;
 		break;
 
+	case WM_CHAR:
+	case WM_SYSCHAR:
+	case WM_DEADCHAR:
+	case WM_SYSDEADCHAR:
+		{
+			uint32_t scancode = (HIWORD(lParam)) & 0x1ff;
+			
+			int modifiers = KEY_MOD_CHAR | sys_key_modifiers();
+
+			int out_char = 0;
+			WideCharToMultiByte(CP_OEMCP, 0, &wParam, 1, &out_char, 1, NULL, NULL);
+			received_event.type = EVENT_KEY_DOWN;
+			received_event.keycode = scancode;
+			received_event.charcode = out_char;
+			received_event.modifiers = modifiers;
+
+//			log_info("wm_char: scancode = %d, wParam = %d, c=%d", scancode, wParam, out_char);
+			sys_event_write(received_event);
+			
+		}
+		return 0;
 
 	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+		{
+//			uint32_t scancode = (HIWORD(lParam)) & 0x1ff;
+			
+//			char buffer[50];
+//			GetKeyNameTextA(lParam, buffer, 50);
+//			log_info("keydown: scancode = %d, wParam = %d, str = \"%s\"", scancode, wParam, buffer);
+//			TranslateMessage(uMsg);
+		}
 		bit = 1;
+		/* fall through */
 	case WM_KEYUP:
-		code = (HIWORD(lParam)) & 511;
+	case WM_SYSKEYUP:
+		code = (HIWORD(lParam)) & 0x1ff;
 		if(code < KEYMAX)keys[code]=bit;
-		if(code == KEY_F11 && bit == 0)
+
+		received_event.type = bit ? EVENT_KEY_DOWN : EVENT_KEY_UP;
+		received_event.keycode = code;
+		received_event.charcode = 0;
+		received_event.modifiers = sys_key_modifiers();
+
+		if(received_event.modifiers & KEY_MOD_ALT)
+		if(code == KEY_ENTER && bit == 1)
+			fullscreen_toggle = 1;
+		else
+		{
+			sys_event_write(received_event);
+		}
+
+		if(code == KEY_F11 && bit == 1)
 			fullscreen_toggle = 1;
 		return 0;
 
 	case WM_LBUTTONDOWN:
 		bit = 1;
+		/* fall through */
 	case WM_LBUTTONUP:
 		mouse[0]=bit;
 		if(w32_moving)
@@ -259,18 +307,21 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_MBUTTONDOWN:
 		bit = 1;
+		/* fall through */
 	case WM_MBUTTONUP:
 		mouse[1]=bit;
 		return 0;
 
 	case WM_RBUTTONDOWN:
 		bit = 1;
+		/* fall through */
 	case WM_RBUTTONUP:
 		mouse[2]=bit;
 		return 0;
 
 	case WM_XBUTTONDOWN:
 		bit = 1;
+		/* fall through */
 	case WM_XBUTTONUP:
 		switch(GET_XBUTTON_WPARAM(wParam)) {
 		case XBUTTON1:
@@ -498,6 +549,12 @@ static void handle_events(void)
 			killme=TRUE;
 		if(mesg.hwnd == hWnd)
 		{
+			switch(mesg.message) {
+			case WM_KEYDOWN:
+				TranslateMessage(&mesg);
+			default:
+				break;
+			}
 			wProc(mesg.hwnd,mesg.message,mesg.wParam,mesg.lParam);
 		}
 		else
@@ -520,6 +577,7 @@ int APIENTRY WinMain(HINSTANCE hCurrentInst, HINSTANCE hPrev,
 	hInst = hCurrentInst;
 	CmdShow = nCmdShow;
 	log_init();
+	sys_event_init();
 	log_info("Platform    : win32");
 	/* Convert win32 style arguments to standard format */
 #define ARGC_MAX 10
@@ -560,6 +618,7 @@ int APIENTRY WinMain(HINSTANCE hCurrentInst, HINSTANCE hPrev,
 	{
 		handle_events();
 		main_loop();
+		sys_event_init();
 	}
 
 	main_end();

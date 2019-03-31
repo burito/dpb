@@ -207,6 +207,7 @@ static void handle_events(void)
 	int pos=0;
 	while(XPending(display) > 0)
 	{
+		int bit = 0;
 		XNextEvent(display, &event);
 		if(XGetEventData(display, &event.xcookie))
 		{
@@ -306,14 +307,22 @@ static void handle_events(void)
 /* keyboard */
 		case KeyPress:
 //			log_debug("keyd[%d] @ %d", event.xkey.keycode, (int)event.xkey.time);
-			if(event.xkey.keycode < KEYMAX)
-				keys[event.xkey.keycode] = 1;
-			break;
-		case KeyRelease:
-			if(event.xkey.keycode < KEYMAX)
-				keys[event.xkey.keycode] = 0;
 			if(event.xkey.keycode == KEY_F11)
+			{
 				fullscreen_toggle=1;
+				return;
+			}
+			bit = 1;
+			/* fall through */
+		case KeyRelease:
+			{
+				int code = event.xkey.keycode
+				if( code < KEYMAX )
+					keys[code] = bit;
+				received_event.type = bit ? EVENT_KEY_DOWN : EVENT_KEY_UP;
+				received_event.keycode = code;
+				sys_event_write(received_event);
+			}
 			break;
 		}
 	}
