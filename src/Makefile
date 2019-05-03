@@ -81,8 +81,14 @@ $(BINARY_NAME).bin: $(MAC_OBJS)
 	$(CC) $(CFLAGS) $^ $(MAC_LIBS) -o $@
 
 # start build the win32 Resource File (contains the icon)
+# 48x48 is needed for XP and 98
+# 32x32 is for 98
 $(WIN_DIR)/Icon.ico: Icon.png
-	$(MAGICK) -resize 256x256 $^ $@
+	$(MAGICK) $^ \
+		\( -clone 0 -resize 256x256 \) \
+		\( -clone 0 -resize 48x48 \) \
+		\( -clone 0 -resize 32x32 \) \
+		-delete 0 $@
 $(WIN_DIR)/win32.rc: win32.rc.pre
 	sed -e "s/COPYRIGHT/$(COPYRIGHT)/" -e "s/COMPANY/$(COMPANY)/" -e "s/GIT_VERSION/$(GIT_VERSION)/" -e "s/BINARY_NAME/$(BINARY_NAME)/" -e "s/DESCRIPTION/$(DESCRIPTION)/" < $^ > $@
 
@@ -128,6 +134,13 @@ $(MAC_CONTENTS)/Info.plist: Info.plist.pre
 $(MAC_CONTENTS)/Resources/AppIcon.icns: $(MAC_DIR)/AppIcon.icns
 	@mkdir -p $(MAC_CONTENTS)/Resources
 	cp $< $@
+
+
+clean:
+	@rm -rf build $(BINARY_NAME) $(BINARY_NAME).exe $(BINARY_NAME).bin $(BINARY_NAME).app
+
+# create the build directories
+$(shell mkdir -p $(WIN_DIR) $(LIN_DIR) $(MAC_DIR))
 
 # create the version info
 GIT_VERSION:=$(shell git describe --dirty --always --tags)
