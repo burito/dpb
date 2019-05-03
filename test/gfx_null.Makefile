@@ -29,7 +29,3 @@ $(MAC_CONTENTS)/MacOS/$(BINARY_NAME): $(BINARY_NAME).bin
 	cp $< $@
 
 
-clean:
-	@rm -rf build $(BINARY_NAME) $(BINARY_NAME).exe $(BINARY_NAME).bin $(BINARY_NAME).app
-
-$(shell mkdir -p build/win build/lin build/mac)
