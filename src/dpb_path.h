@@ -3,6 +3,7 @@
    Do this:
       #define DPB_PATH_IMPLEMENTATION
    before you include this file in *one* C or C++ file to create the implementation.
+
    // i.e. it should look like this:
    #include ...
    #include ...
@@ -17,11 +18,11 @@ printf( "%s/id Software/Rage", dpb_path_savedgames() );
 
 On the worst case scenario, someone is running Windows with a version of
 Internet Explorer that is *less* than version 4.0 (Win95 with no updates),
-this function will resturn ".", so the result will be...
+this function will return ".", so the result will be...
     ./id Software/Rage
 
 If you think that forward slashes will not work on windows, you are mistaken.
-They have been supported on Microsoft OS's since MS-DOS 2.0.
+They have been supported on Microsoft OS's since MS-DOS 2.
 
 On Windows, this library depends on kernel32.lib and windows.h. It's almost
 impossible to compile a windows binary without them, so for all intents and
@@ -36,9 +37,9 @@ you will probably need to use...
 
 On Windows, if you are using WCHAR_T, you should use...
 
-char *in = dpb_path_savedgames();
-wchar_t out[MAX_PATH];
-MultiByteToWideChar(CP_UTF8, 0, in, strlen(in), out, MAX_PATH);
+    char *in = dpb_path_savedgames();
+    wchar_t out[MAX_PATH];
+    MultiByteToWideChar(CP_UTF8, 0, in, strlen(in), out, MAX_PATH);
 
 If you are using char for your filenames, you don't have to do anything.
 If you are using Linux, UTF8 is the default, you don't have to do anything.
@@ -68,6 +69,12 @@ int main(int argc, char* argv[])
 	return 0;
 }
 //////////////////////////////////////////////////////////////////////////////
+
+
+Special Thanks to Sean Barrett, for inspiration, and generous cut & pasting
+of his license and layout. Check out his stuff, it's much better than mine.
+https://github.com/nothings/stb
+
 */
 
 #ifndef DPBP_INCLUDE_DPB_PATH_H
@@ -277,10 +284,11 @@ char* dpb_path_savedgames(void)
 
 #endif // DPB_PATH_IMPLEMENTATION
 /*
+
 ------------------------------------------------------------------------------
 This software is available under 2 licenses -- choose whichever you prefer.
 ------------------------------------------------------------------------------
-ALTERNATIVE A - BSD License
+ALTERNATIVE A - zlib License
 Copyright (C) 2019 Daniel Burke
 
 This software is provided 'as-is', without any express or implied
