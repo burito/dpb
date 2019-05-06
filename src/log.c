@@ -17,8 +17,9 @@ freely, subject to the following restrictions:
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-#define _XOPEN_SOURCE 700
-
+#ifndef _WIN32	// this causes msvcrt.dll to be linked (don't know why)
+//#define _XOPEN_SOURCE 700
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -30,6 +31,7 @@ freely, subject to the following restrictions:
 #include "log.h"
 
 #ifdef _WIN32
+#define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -98,15 +100,6 @@ void log_out(char* file, int line, enum LOG_LEVEL level, char *fmt, ...)
 		(uint64_t)tv.tv_sec, tv.tv_nsec,
 		file, line,
 		log_label(level) );
-/*
-	clock_gettime(0, &tv); // CLOCK_MONOTONIC?
-	struct tm tm_now;
-	localtime_s( &tm_now, &tv.tv_sec);
-	strftime( time_buf, 128, "%Y-%m-%dT%H:%M:%S", &tm_now);
-	printf( "%s.%09ld %s ",
-		time_buf + time_str_offset, tv.tv_nsec,
-		log_label(level) );
-*/
 
 	va_list args;
 	va_start(args, fmt);
