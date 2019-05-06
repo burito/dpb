@@ -23,6 +23,7 @@ Initialises OpenGL, clears the window with Green, draws a blue square that is ha
 
 ### path_test
 Bare bones test of dpb_path.h.
+
 | OS | Output |
 |----|--------|
 | Windows 10 | C:\Users\Username\Saved Games |
@@ -32,6 +33,8 @@ Bare bones test of dpb_path.h.
 | Windows 3.11 | This program cannot be run in DOS mode. |
 | Mac OS X | ~/Library/Application Support |
 | Linux | ~/.local/share |
+
+Yes, the version of Internet Explorer matters with Win9x. If you want to be clever and just paste this table into your program, remember that windows doesn't have to install to C:, nor does it have to install into the Windows Directory, all of this can be changed in the registry, and most strings are translated to the local language. It should also work on NT4+IE4, and all versions of windows that are newer.
 
 ## Build Environment
 ### Windows
