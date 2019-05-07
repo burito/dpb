@@ -120,7 +120,7 @@ typedef struct _DLLVERSIONINFO2 {
   ULONGLONG      ullVersion;
 } DLLVERSIONINFO2;
 
-static const GUID FOLDERID_SavedGames = { 0x4c5c32ff, 0xbb9d, 0x43b0, 0xb5, 0xb4, 0x2d, 0x72, 0xe5, 0x4e, 0xaa, 0xa4 };
+static const GUID FOLDERID_SavedGames = { 0x4c5c32ff, 0xbb9d, 0x43b0, {0xb5, 0xb4, 0x2d, 0x72, 0xe5, 0x4e, 0xaa, 0xa4 }};
 #endif
 
 // It's supposed to be MAX_PATH = 260, but we don't trust that
@@ -129,26 +129,37 @@ static char buf[1000];
 
 char* dpb_path_savedgames(void)
 {
+	// module and function pointers
+	HMODULE shell32; // for shell32.dll
+	HRESULT (*Dllgetversionproc)();
+	HRESULT (*SHGetSpecialFolderPathA)();
+	HRESULT (*SHGetFolderPathA)();
+	HRESULT (*SHGetKnownFolderPath)();
+	HMODULE ole32; // for ole32.dll
+	void (*CoTaskMemFree)();
+	// normal variables
+	PWSTR ppszPath;	// use for SHGetKnownFolderPath
+	DLLVERSIONINFO2 VerInfo2; // for getting the DLL verison info
+	int major_version;
+	// return values
 	HRESULT ret;
 	BOOL bret;
 	char* result = ".";
-	// shell32.dll, version 4.71
 
-	HMODULE l = LoadLibrary("shell32.dll");
-	if( NULL == l )
-	{// without shell32.lib, the system is broken
+	shell32 = LoadLibrary("shell32.dll");
+	if( NULL == shell32 )
+	{// without shell32.dll, the system is broken
 		goto PATH_RETURN;
 	}
 
-	HRESULT (*Dllgetversionproc)() =
-		(HRESULT(*)())GetProcAddress(l, "DllGetVersion");
+	Dllgetversionproc =
+		(HRESULT(*)())GetProcAddress(shell32, "DllGetVersion");
 	if( NULL == Dllgetversionproc )
 	{ // Version 4.0 or less, Windows 95 with Internet Explorer 3.0
 		// there is no hope at this point.
 		goto PATH_LIBRARY;
 	}
 
-	DLLVERSIONINFO2 VerInfo2;
 	// this is supposed to work, but fails on Win98
 	// VerInfo2.info1.cbSize = sizeof(DLLVERSIONINFO2);
 	VerInfo2.info1.cbSize = sizeof(DLLVERSIONINFO);
@@ -160,8 +171,8 @@ char* dpb_path_savedgames(void)
 		goto PATH_LIBRARY;
 	}
 
-	int major_version = VerInfo2.info1.dwMajorVersion;
-	int minor_version = VerInfo2.info1.dwMinorVersion;
+	major_version = VerInfo2.info1.dwMajorVersion;
+//	int minor_version = VerInfo2.info1.dwMinorVersion;
 /*	printf("Major = %d, Minor = %d\n",
 	VerInfo2.info1.dwMajorVersion,
 	VerInfo2.info1.dwMinorVersion
@@ -178,8 +189,8 @@ char* dpb_path_savedgames(void)
 		break;
 	case 4:
 	{// should check minor_version
-		HRESULT (*SHGetSpecialFolderPathA)() =
-		(HRESULT(*)())GetProcAddress(l, "SHGetSpecialFolderPathA");
+		SHGetSpecialFolderPathA =
+		(HRESULT(*)())GetProcAddress(shell32, "SHGetSpecialFolderPathA");
 		if( NULL == SHGetSpecialFolderPathA ) {
 //			printf("no SHGetSpecialFolderPathA in version %d\n",
 //				major_version);
@@ -198,8 +209,8 @@ char* dpb_path_savedgames(void)
 	case 5:
 	case 6:
 	{
-		HRESULT (*SHGetFolderPathA)() =
-		(HRESULT(*)())GetProcAddress(l, "SHGetFolderPathA");
+		SHGetFolderPathA =
+		(HRESULT(*)())GetProcAddress(shell32, "SHGetFolderPathA");
 		if( NULL == SHGetFolderPathA ) {
 //			printf("no SHGetFolderPathA in version %d\n",
 //				major_version);
@@ -222,15 +233,13 @@ char* dpb_path_savedgames(void)
 	case 10:
 	default:
 	{
-		HRESULT (*SHGetKnownFolderPath)() =
-		(HRESULT(*)())GetProcAddress(l, "SHGetKnownFolderPath");
+		SHGetKnownFolderPath =
+		(HRESULT(*)())GetProcAddress(shell32, "SHGetKnownFolderPath");
 		if( NULL == SHGetKnownFolderPath ) {
 //			printf("no SHGetKnownFolderPath in version %d\n",
 //				major_version);
 			goto PATH_LIBRARY;
 		}
-		FOLDERID_SavedGames;
-		PWSTR ppszPath;
 
 		ret = SHGetKnownFolderPath(&FOLDERID_SavedGames,
 			0, NULL, &ppszPath);
@@ -245,22 +254,22 @@ char* dpb_path_savedgames(void)
 		result = buf;
 		// we've got what we want, but lets clean up nicely
 
-		HMODULE o = LoadLibrary("ole32.dll");
-		if( NULL == o )
+		ole32 = LoadLibrary("ole32.dll");
+		if( NULL == ole32 )
 		{// it failed, we don't care
 			goto PATH_LIBRARY;
 		}
-		void (*CoTaskMemFree)() =
-		(void(*)())GetProcAddress(o, "CoTaskMemFree");
+		CoTaskMemFree =
+		(void(*)())GetProcAddress(ole32, "CoTaskMemFree");
 		if( NULL != CoTaskMemFree )
 		{
 			CoTaskMemFree(ppszPath);
 		}
-		FreeLibrary(o);
+		FreeLibrary(ole32);
 	}}
 
 PATH_LIBRARY:
-	FreeLibrary(l);
+	FreeLibrary(shell32);
 PATH_RETURN:
 	return result;
 }

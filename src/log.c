@@ -85,13 +85,8 @@ static const char * log_label(enum LOG_LEVEL level)
 // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 void log_out(char* file, int line, enum LOG_LEVEL level, char *fmt, ...)
 {
-	int display_date = 0;
-	int time_str_offset = display_date ? 0 : 11;
-	char time_buf [128];
 	struct timespec tv;
 
-	time_buf[0] = 0;
-	time_str_offset = 0;
 	double now = (double)sys_time() / (double)sys_ticksecond;
 	tv.tv_nsec = fmod( now, 1.0) * 1000000000.0f;
 	tv.tv_sec = (uint64_t)now;

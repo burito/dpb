@@ -2,7 +2,7 @@ COMPANY = Daniel Burke
 COPYRIGHT = 2019
 DESCRIPTION = OpenGL Test
 BINARY_NAME = gfx_gl
-CFLAGS = -std=c11 -Ideps/include -Isrc -DOLD_OPENGL
+CFLAGS = -std=c11 -Ideps/include -Isrc -DOLD_OPENGL -Wall
 OBJS =  log.o global.o version.o gfx_gl.o
 VPATH = src test deps
 
