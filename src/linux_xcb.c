@@ -17,8 +17,6 @@ freely, subject to the following restrictions:
    misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-#define _XOPEN_SOURCE 700
-#include <time.h>
 
 #include <stdlib.h>
 #include <xcb/xcb.h>
@@ -40,11 +38,8 @@ xcb_window_t window;
 int main(int argc, char *argv[])
 {
 
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-	sys_time_start = ts.tv_sec * 1000000000 + ts.tv_nsec;
-
 	log_init();
+	sys_event_init();
 	log_info("Platform    : XCB");
 	xcb_screen_t *screen;
 	xcb_intern_atom_reply_t *atom_wm_delete_window;

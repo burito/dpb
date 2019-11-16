@@ -200,6 +200,7 @@ static void handle_events(void)
 	XEvent event;
 	XIDeviceEvent *e;
 	double value;
+	struct sys_event received_event;
 
 	mickey_x = mickey_y = 0;
 
@@ -316,7 +317,7 @@ static void handle_events(void)
 			/* fall through */
 		case KeyRelease:
 			{
-				int code = event.xkey.keycode
+				int code = event.xkey.keycode;
 				if( code < KEYMAX )
 					keys[code] = bit;
 				received_event.type = bit ? EVENT_KEY_DOWN : EVENT_KEY_UP;
@@ -357,6 +358,7 @@ static void x11_end(void)
 int main(int argc, char* argv[])
 {
 	log_init();
+	sys_event_init();
 	log_info("Platform    : Xlib");
 
 	x11_init();
@@ -371,6 +373,7 @@ int main(int argc, char* argv[])
 	{
 		handle_events();
 		main_loop();
+		sys_event_init();
 	}
 
 	main_end();

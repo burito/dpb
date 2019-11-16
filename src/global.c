@@ -75,14 +75,14 @@ uint64_t sys_time(void)
 {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-	return (ts.tv_sec * 1000000000 + ts.tv_nsec) - sys_time_start;
+	return ((uint64_t)ts.tv_sec * 1000000000 + ts.tv_nsec) - sys_time_start;
 }
 
 void sys_time_init(void)
 {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-	sys_time_start = ts.tv_sec * 1000000000 + ts.tv_nsec;
+	sys_time_start = (uint64_t)ts.tv_sec * 1000000000 + ts.tv_nsec;
 }
 #endif
 
