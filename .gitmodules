@@ -1,6 +1,6 @@
 [submodule "deps/ctap"]
 	path = deps/ctap
-	url = https://github.com/jhunt/ctap
+	url = git@github.com:jhunt/ctap
 [submodule "deps/small-matrix-inverse"]
 	path = deps/small-matrix-inverse
-	url = https://github.com/niswegmann/small-matrix-inverse
+	url = git@github.com:niswegmann/small-matrix-inverse
