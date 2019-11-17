@@ -60,26 +60,26 @@ void osx_view_init(void)
 	SEL alloc = sel_registerName("alloc");
 	SEL initWithAttributes = sel_registerName("initWithAttributes:");
 	Class NSOpenGLPixelFormatClass = objc_getClass("NSOpenGLPixelFormat");
-	id pixelFormatAlloc = objc_msgSend((id)NSOpenGLPixelFormatClass, alloc);
-	id glpixelformat = objc_msgSend(pixelFormatAlloc, initWithAttributes, pixelFormatAttributes);
+	id pixelFormatAlloc = ((id (*)(id, SEL))objc_msgSend)((id)NSOpenGLPixelFormatClass, alloc);
+	id glpixelformat = ((id (*)(id, SEL, uint32_t[]))objc_msgSend)(pixelFormatAlloc, initWithAttributes, pixelFormatAttributes);
 
 //	NSOpenGLView *view = [[NSOpenGLView alloc] initWithFrame:[[window contentView] bounds] pixelFormat:glpixelformat];
 //	id gl_view_alloc = [NSOpenGLView alloc];
 	Class NSOpenGLViewClass = objc_getClass("NSOpenGLView");
-	id gl_view_alloc = objc_msgSend((id)NSOpenGLViewClass, alloc);
+	id gl_view_alloc = ((id (*)(id, SEL))objc_msgSend)((id)NSOpenGLViewClass, alloc);
 //	CGRect window_bounds = [window contentView];
 	SEL contentView = sel_registerName("contentView");
-	id window_contentview = objc_msgSend(window, contentView);
+	id window_contentview = ((id (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(window, contentView);
 //	CGRect window_bounds = [window_contentview bounds];
 	SEL bounds = sel_registerName("bounds");
 	CGRect window_bounds = ((CGRect (*)(id, SEL))objc_msgSend_stret)(window_contentview, bounds);
 //	NSOpenGLView *view = [gl_view_alloc initWithFrame:window_bounds pixelFormat:glpixelformat];
 	SEL initWithFramePixelFormat = sel_registerName("initWithFrame:pixelFormat:");
-	id view = objc_msgSend(gl_view_alloc, initWithFramePixelFormat, window_bounds, glpixelformat);
+	id view = ((id (*)(id, SEL, CGRect, id))objc_msgSend)(gl_view_alloc, initWithFramePixelFormat, window_bounds, glpixelformat);
 
 //	[window setContentView:view];
 	SEL setContentView = sel_registerName("setContentView:");
-	objc_msgSend(window, setContentView, view);
+	((id (*)(id, SEL, id))objc_msgSend)(window, setContentView, view);
 
 	ns_view = view;
 
@@ -87,28 +87,43 @@ void osx_view_init(void)
 
 //	[view setWantsBestResolutionOpenGLSurface:YES];   // enable retina resolutions
 	SEL setWantsBestResolutionOpenGLSurface = sel_registerName("setWantsBestResolutionOpenGLSurface:");
-	objc_msgSend(view, setWantsBestResolutionOpenGLSurface, YES);
+	((id (*)(id, SEL, BOOL))objc_msgSend)(view, setWantsBestResolutionOpenGLSurface, YES);
 
 //	CGLContextObj cglContext = [[view openGLContext] CGLContextObj];
 	SEL sel_openGLContext = sel_registerName("openGLContext");
-	openGLcontext = objc_msgSend(view, sel_openGLContext);
+	openGLcontext = ((id (*)(id, SEL))objc_msgSend)(view, sel_openGLContext);
 
 }
 
 SEL sel_flushBuffer;
 void gfx_init(void)
 {
+	CVReturn ret;
 	sel_flushBuffer = sel_registerName("flushBuffer");
 	// Use a CVDisplayLink to toggle a mutex, to allow VSync
 	pthread_mutex_lock(&mutex_vsync);
-	CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
-	CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
-	CVDisplayLinkStart(_displayLink);
+	ret = CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+	if(ret != kCVReturnSuccess){
+		log_error("CVDisplayLinkCreateWithActiveCGDisplays() = %d", ret);
+	}
+	ret = CVDisplayLinkSetOutputCallback(_displayLink, &DisplayLinkCallback, NULL);
+	if(ret != kCVReturnSuccess){
+		log_error("CVDisplayLinkSetOutputCallback() = %d", ret);
+	}
+	ret = CVDisplayLinkStart(_displayLink);
+	if(ret != kCVReturnSuccess){
+		log_error("CVDisplayLinkStart() = %d", ret);
+	}
 }
 
 void gfx_end(void)
 {
-	CVDisplayLinkStop(_displayLink);
+	CVReturn ret;
+	ret = CVDisplayLinkStop(_displayLink);
+	if(ret != kCVReturnSuccess){
+		log_error("CVDisplayLinkStop() = %d", ret);
+	}
+	
 }
 
 void gfx_resize(void)
@@ -122,5 +137,5 @@ void gfx_swap(void)
 	pthread_mutex_lock(&mutex_vsync);
 	pthread_mutex_unlock(&mutex_vsync);
 #endif
-	objc_msgSend(openGLcontext, sel_flushBuffer);
+	((id (*)(id, SEL))objc_msgSend)(openGLcontext, sel_flushBuffer);
 }
