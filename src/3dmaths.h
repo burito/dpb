@@ -150,6 +150,7 @@ int int_sub(int l, int r) __attribute__((const));
 int int_div_int(int l, int r) __attribute__((const));
 
 int2 int2_add(int2 l, int2 r) __attribute__((const));
+int3 int3_mul_int(int3 l, int r) __attribute__((const));
 
 
 // returns the magnitude of a vector
@@ -179,6 +180,8 @@ int2 int2_add(int2 l, int2 r) __attribute__((const));
 	vect: _Generic(Y, \
 		vect: vect_mul_vect,	\
 		default: vect_mul_float), \
+	int3: _Generic(Y, \
+		default: int3_mul_int), \
 	float: float_mul, \
 	default: int_mul \
 	)(X,Y)

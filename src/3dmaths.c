@@ -353,6 +353,12 @@ int2 int2_add(int2 l, int2 r)
 	return x;
 }
 
+int3 int3_mul_int(int3 l, int r)
+{
+	int3 x = {l.x*r, l.y*r, l.z*r};
+	return x;
+}
+
 float float_mul(float l, float r)
 {
 	return l * r;
