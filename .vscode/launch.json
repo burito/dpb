@@ -18,15 +18,11 @@
 		},
 		{
 			"name": "Launch gfx_gl",
-			"type": "cppdbg",
+			"type": "lldb",
 			"request": "launch",
-			"program": "${workspaceFolder}/gfx_gl.app/Contents/MacOS/gfx_gl",
+			"program": "${workspaceFolder}/gfx_gl.bin",
 			"args": [],
-			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
-			"environment": [],
-			"externalConsole": true,
-			"MIMode": "lldb"
 		}
 	]
 }

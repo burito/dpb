@@ -20,6 +20,8 @@
 #include <CoreVideo/CVReturn.h>
 #include <CoreVideo/CVDisplayLink.h>
 
+extern char* ns_str(id);
+
 extern id NSApp;
 
 extern id window;
@@ -59,23 +61,26 @@ void osx_view_init(void)
 //	NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
 	SEL alloc = sel_registerName("alloc");
 	SEL initWithAttributes = sel_registerName("initWithAttributes:");
-	Class NSOpenGLPixelFormatClass = objc_getClass("NSOpenGLPixelFormat");
-	id pixelFormatAlloc = ((id (*)(id, SEL))objc_msgSend)((id)NSOpenGLPixelFormatClass, alloc);
-	id glpixelformat = ((id (*)(id, SEL, uint32_t[]))objc_msgSend)(pixelFormatAlloc, initWithAttributes, pixelFormatAttributes);
+	Class class_NSOpenGLPixelFormat = objc_getClass("NSOpenGLPixelFormat");
+	id pixelFormatAlloc = ((id (*)(Class, SEL))objc_msgSend)(class_NSOpenGLPixelFormat, alloc);
+	id glpixelformat = ((id (*)(id, SEL, const uint32_t*))objc_msgSend)(pixelFormatAlloc, initWithAttributes, pixelFormatAttributes);
+	log_debug("glpixelformat = %s", ns_str(glpixelformat));
+
 
 //	NSOpenGLView *view = [[NSOpenGLView alloc] initWithFrame:[[window contentView] bounds] pixelFormat:glpixelformat];
 //	id gl_view_alloc = [NSOpenGLView alloc];
-	Class NSOpenGLViewClass = objc_getClass("NSOpenGLView");
-	id gl_view_alloc = ((id (*)(id, SEL))objc_msgSend)((id)NSOpenGLViewClass, alloc);
+	Class class_NSOpenGLView = objc_getClass("NSOpenGLView");
+	id gl_view_alloc = ((id (*)(Class, SEL))objc_msgSend)(class_NSOpenGLView, alloc);
 //	CGRect window_bounds = [window contentView];
 	SEL contentView = sel_registerName("contentView");
-	id window_contentview = ((id (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(window, contentView);
+	id window_contentview = ((id (*)(id, SEL))objc_msgSend)(window, contentView);
 //	CGRect window_bounds = [window_contentview bounds];
 	SEL bounds = sel_registerName("bounds");
 	CGRect window_bounds = ((CGRect (*)(id, SEL))objc_msgSend_stret)(window_contentview, bounds);
 //	NSOpenGLView *view = [gl_view_alloc initWithFrame:window_bounds pixelFormat:glpixelformat];
 	SEL initWithFramePixelFormat = sel_registerName("initWithFrame:pixelFormat:");
 	id view = ((id (*)(id, SEL, CGRect, id))objc_msgSend)(gl_view_alloc, initWithFramePixelFormat, window_bounds, glpixelformat);
+	log_debug("view = %s", ns_str(view));
 
 //	[window setContentView:view];
 	SEL setContentView = sel_registerName("setContentView:");
@@ -92,6 +97,7 @@ void osx_view_init(void)
 //	CGLContextObj cglContext = [[view openGLContext] CGLContextObj];
 	SEL sel_openGLContext = sel_registerName("openGLContext");
 	openGLcontext = ((id (*)(id, SEL))objc_msgSend)(view, sel_openGLContext);
+	log_debug("openGLcontext = %s", ns_str(openGLcontext));
 
 }
 
@@ -114,6 +120,17 @@ void gfx_init(void)
 	if(ret != kCVReturnSuccess){
 		log_error("CVDisplayLinkStart() = %d", ret);
 	}
+
+
+	SEL sel_bounds = sel_registerName("bounds");
+	SEL sel_convert = sel_registerName("convertRectToBacking:");
+
+	CGRect r = ((CGRect (*)(id, SEL))objc_msgSend_stret)(ns_view, sel_bounds);
+	CGRect ns_actual_rect = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)(ns_view, sel_convert, r);
+
+	vid_width = ns_actual_rect.size.width;
+	vid_height = ns_actual_rect.size.height;
+
 }
 
 void gfx_end(void)
@@ -128,6 +145,20 @@ void gfx_end(void)
 
 void gfx_resize(void)
 {
+/*
+	SEL sel_bounds = sel_registerName("bounds");
+	SEL sel_convert = sel_registerName("convertRectToBacking:");
+	Class NSRect = objc_getClass("NSRect");
+
+	CGRect r = ((CGRect (*)(id, SEL))objc_msgSend_stret)(ns_view, sel_bounds);
+	CGRect ns_actual_rect = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)((id)ns_view, sel_convert, r);
+
+	vid_width = ns_actual_rect.size.width;
+	vid_height = ns_actual_rect.size.height;
+
+	log_debug("Screen = %d, %d", vid_width, vid_height);
+*/
+
 	glViewport(0, 0, vid_width, vid_height);
 }
 
@@ -137,5 +168,8 @@ void gfx_swap(void)
 	pthread_mutex_lock(&mutex_vsync);
 	pthread_mutex_unlock(&mutex_vsync);
 #endif
-	((id (*)(id, SEL))objc_msgSend)(openGLcontext, sel_flushBuffer);
+	id ret = ((id (*)(id, SEL))objc_msgSend)(openGLcontext, sel_flushBuffer);
+	if(ret){
+		log_debug("ret = %s", ns_str(ret));
+	}
 }

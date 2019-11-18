@@ -120,7 +120,7 @@ void sys_menu_init(void)
 //	id menu_app = [[NSMenu alloc] init];
 	id menu_app = ((id (*)(id, SEL))objc_msgSend)((id)class_NSMenu, sel_alloc);
 	((id (*)(id, SEL))objc_msgSend)(menu_app, sel_init);
-
+	log_debug("menu_app = %s", ns_str(menu_app));
 
 	// add the menu items
 //	id menuitem_about = [[NSMenuItem alloc] initWithTitle:str_about_app action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:str_empty];
@@ -181,6 +181,7 @@ void windowDidResize(id self, SEL _sel, id nofitication)
 	log_debug("WindowDelegate:windowDidResize");
 	SEL sel_backingScaleFactor = sel_registerName("backingScaleFactor");
 	SEL sel_contentView = sel_registerName("contentView");
+	SEL sel_convert = sel_registerName("convertRectToBacking:");
 //	sys_dpi = [window backingScaleFactor];
 	sys_dpi = ((CGFloat (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(window, sel_backingScaleFactor);
 //	CGSize box = [window contentView].frame.size;
@@ -188,8 +189,10 @@ void windowDidResize(id self, SEL _sel, id nofitication)
 	SEL sel_frame = sel_registerName("frame");
 	CGRect r = ((CGRect (*)(id, SEL))objc_msgSend_stret)(view, sel_frame);
 
-	vid_width = r.size.width * sys_dpi;
-	vid_height = r.size.height * sys_dpi;
+	r = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)((id)view, sel_convert, r);
+
+	vid_width = r.size.width;// * sys_dpi;
+	vid_height = r.size.height;// * sys_dpi;
 	gfx_resize();
 }
 
@@ -204,7 +207,7 @@ int handle_event(id event)
 	struct sys_event received_event;
 // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ApplicationKit/Classes/NSEvent_Class/#//apple_ref/c/tdef/NSEventType
 
-	NSUInteger event_type = ((NSUInteger (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(event, sel_type);
+	NSUInteger event_type = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_type);
 //	log_info("event = %d", event_type);
 // event codes are defined in...
 // /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSEvent.h
@@ -257,8 +260,8 @@ int handle_event(id event)
 
 	case 10: // NSEventTypeKeyDown:
 		{
-			NSUInteger modifier_flags = ((NSUInteger (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(event, sel_modifierFlags);
-			NSUInteger key_code = ((NSUInteger (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(event, sel_keyCode);
+			NSUInteger modifier_flags = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_modifierFlags);
+			NSUInteger key_code = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_keyCode);
 			if(modifier_flags & (1<<20))	// any command key
 			{
 				if(modifier_flags & (1<<18))	// any control key
@@ -274,7 +277,7 @@ int handle_event(id event)
 		/* fall through */
 	case 11: // NSEventTypeKeyUp:
 		{
-			NSUInteger key_code = ((NSUInteger (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(event, sel_keyCode);
+			NSUInteger key_code = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_keyCode);
 			keys[key_code] = bit;
 
 			received_event.type = bit ? EVENT_KEY_DOWN : EVENT_KEY_UP;
@@ -285,7 +288,7 @@ int handle_event(id event)
 
 	case 12: // NSEventTypeFlagsChanged:
 		{
-			NSUInteger modifier_flags = ((NSUInteger (*)(id, SEL))((id (*)(id, SEL))objc_msgSend))(event, sel_modifierFlags);
+			NSUInteger modifier_flags = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_modifierFlags);
 			for(int i = 0; i<24; i++)
 			{
 				int bit = !!(modifier_flags & (1 << i));
@@ -330,24 +333,24 @@ int main(int argc, char * argv[])
 
 //	[[NSAutoreleasePool alloc] init];
 	Class class_NSAutoreleasePool = objc_getClass("NSAutoreleasePool");
-	id pool = ((id (*)(id, SEL))objc_msgSend)((id)class_NSAutoreleasePool, sel_alloc);
-	((id (*)(id, SEL))objc_msgSend)(pool, sel_init);
+	id pool_alloc = ((id (*)(Class, SEL))objc_msgSend)(class_NSAutoreleasePool, sel_alloc);
+	id pool = ((id (*)(id, SEL))objc_msgSend)(pool_alloc, sel_init);
 	
 //	[NSApplication sharedApplication];
 	Class class_NSApplication = objc_getClass("NSApplication");
 	SEL sel_sharedApplication = sel_registerName("sharedApplication");
-	((id (*)(id, SEL))objc_msgSend)((id)class_NSApplication, sel_sharedApplication);
+	((id (*)(Class, SEL))objc_msgSend)(class_NSApplication, sel_sharedApplication);
 
 	// allows keyboard to work without an app bundle
 // 	[NSApplication setActivationPolicy:NSApplicationActivationPolicyRegular];
 	SEL sel_setActivationPolicy = sel_registerName("setActivationPolicy:");
-	((id (*)(id, SEL, int))objc_msgSend)(NSApp, sel_setActivationPolicy, 0);
+	((void (*)(id, SEL, NSInteger))objc_msgSend)(NSApp, sel_setActivationPolicy, 0);
 
 //	AppDelegate * appd = [[AppDelegate alloc] init];
 	Class class_NSObject = objc_getClass("NSObject");
 	Class class_AppDelegate = objc_allocateClassPair(class_NSObject, "AppDelegate", 0);
 	Protocol *protocol_NSApplicationDelegate = objc_getProtocol("NSApplicationDelegate");
-	int result = class_addProtocol(class_AppDelegate, protocol_NSApplicationDelegate);
+	bool result = class_addProtocol(class_AppDelegate, protocol_NSApplicationDelegate);
 	if(!result)
 	{
 		log_error("AppDelegate creation");
@@ -361,33 +364,31 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	id app_delegate = ((id (*)(id, SEL))objc_msgSend)((id)class_AppDelegate, sel_alloc);
-	((id (*)(id, SEL))objc_msgSend)(app_delegate, sel_init);
+	id app_delegate_alloc = ((id (*)(Class, SEL))objc_msgSend)(class_AppDelegate, sel_alloc);
+	id app_delegate = ((id (*)(id, SEL))objc_msgSend)(app_delegate_alloc, sel_init);
 
 //	[NSApp setDelegate:appd];
 	SEL sel_setDelegate = sel_registerName("setDelegate:");
 	((id (*)(id, SEL, id))objc_msgSend)(NSApp, sel_setDelegate, app_delegate);
 
-
 	// Need to do this because we're not using [NSApp run];
 //	[NSApp finishLaunching];
 	SEL sel_finishLaunching = sel_registerName("finishLaunching");
-	((id (*)(id, SEL))objc_msgSend)(NSApp, sel_finishLaunching);
+	((void (*)(id, SEL))objc_msgSend)(NSApp, sel_finishLaunching);
 
 	sys_menu_init();
 
 //	NSRect contentSize = NSMakeRect(10.0, 500.0, 640.0, 360.0);
 //	NSUInteger windowStyleMask = NSWindowStyleMaskTitled | NSWindowStyleMaskResizable | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
 //	window = [[NSWindow alloc] initWithContentRect:contentSize styleMask:windowStyleMask backing:NSBackingStoreBuffered defer:NO];
+	NSUInteger style_mask = 15; // (1<<0) | (1<<3) | (1<<1) | (1<<2)
 	CGRect content_size = { {10, 500}, {640, 360} };
-	uint32_t style_mask = 15; // (1<<0) | (1<<3) | (1<<1) | (1<<2)
 	Class class_NSWindow = objc_getClass("NSWindow");
-	window = ((id (*)(id, SEL))objc_msgSend)((id)class_NSWindow, sel_alloc);
+	id window_alloc = ((id (*)(Class, SEL))objc_msgSend)(class_NSWindow, sel_alloc);
 	SEL sel_initWithContentRect_styleMask_backing_defer = sel_registerName("initWithContentRect:styleMask:backing:defer:");
-	((id (*)(id, SEL, CGRect, uint32_t, int32_t, BOOL))objc_msgSend)(window, sel_initWithContentRect_styleMask_backing_defer, content_size, style_mask, 2, NO); // 2 = NSBackingStoreBuffered
+	window = ((id (*)(id, SEL, CGRect, NSUInteger, NSUInteger, BOOL))objc_msgSend)(window_alloc, sel_initWithContentRect_styleMask_backing_defer, content_size, style_mask, 2, NO); // 2 = NSBackingStoreBuffered
 
 //	WindowDelegate * wdg = [[WindowDelegate alloc] init];
-//	[window setDelegate: wdg];
 	Class class_WindowDelegate = objc_allocateClassPair(class_NSObject, "AppDelegate", 0);
 	Protocol *protocol_NSWindowDelegate = objc_getProtocol("NSWindowDelegate");
 	result = class_addProtocol(class_WindowDelegate, protocol_NSWindowDelegate);
@@ -411,20 +412,22 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	id window_delegate = ((id (*)(id, SEL))objc_msgSend)((id)class_WindowDelegate, sel_alloc);
-	((id (*)(id, SEL))objc_msgSend)(window_delegate, sel_init);
-	((id (*)(id, SEL, id))objc_msgSend)(window, sel_setDelegate, window_delegate);
+	id window_delegate_alloc = ((id (*)(Class, SEL))objc_msgSend)(class_WindowDelegate, sel_alloc);
+	id window_delegate = ((id (*)(id, SEL))objc_msgSend)(window_delegate_alloc, sel_init);
+
+//	[window setDelegate:wdg];
+	((void (*)(id, SEL, id))objc_msgSend)(window, sel_setDelegate, window_delegate);
 
 //	id str_appname = [[NSProcessInfo processInfo] processName];
 	Class class_NSProcessInfo = objc_getClass("NSProcessInfo");
 	SEL sel_processInfo = sel_registerName("processInfo");
 	SEL sel_processName = sel_registerName("processName");
-	id obj_processInfo = ((id (*)(id, SEL))objc_msgSend)((id)class_NSProcessInfo, sel_processInfo);
+	id obj_processInfo = ((id (*)(Class, SEL))objc_msgSend)(class_NSProcessInfo, sel_processInfo);
 	id str_appname = ((id (*)(id, SEL))objc_msgSend)(obj_processInfo, sel_processName);
 
 //	[window setTitle: str_appname];
 	SEL sel_setTitle = sel_registerName("setTitle:");
-	((id (*)(id, SEL, id))objc_msgSend)(window, sel_setTitle, str_appname);
+	((void (*)(id, SEL, id))objc_msgSend)(window, sel_setTitle, str_appname);
 
 //	[window makeKeyAndOrderFront:window];
 	SEL sel_makeKeyAndOrderFront = sel_registerName("makeKeyAndOrderFront:");
@@ -448,7 +451,7 @@ int main(int argc, char * argv[])
 	Class class_NSDate = objc_getClass("NSDate");
 	SEL sel_distantPast = sel_registerName("distantPast");
 	SEL sel_sendEvent = sel_registerName("sendEvent:");
-	id distant_past = ((id (*)(id, SEL))objc_msgSend)((id)class_NSDate, sel_distantPast);
+	id distant_past = ((id (*)(Class, SEL))objc_msgSend)(class_NSDate, sel_distantPast);
 
 	// used in handle_event()
 	sel_type = sel_registerName("type");
@@ -459,15 +462,16 @@ int main(int argc, char * argv[])
 	SEL sel_mouseLocationOutsideofEventStream = sel_registerName("mouseLocationOutsideOfEventStream");
 	SEL sel_convertRectToBacking = sel_registerName("convertRectToBacking:");
 	SEL sel_backingScaleFactor = sel_registerName("backingScaleFactor");
-
 	while(!killme)
 	{
 		while(1)
 		{
-			id event = ((id (*)(id, SEL, uint64_t, id, id, BOOL))objc_msgSend)(NSApp, sel_nextEventMatchingMask_untilDate_inMode_dequeue, NSUIntegerMax, distant_past, NSDefaultRunLoopMode, YES);
+			id event = ((id (*)(id, SEL, NSUInteger, id, id, BOOL))objc_msgSend)(NSApp, sel_nextEventMatchingMask_untilDate_inMode_dequeue, NSUIntegerMax, distant_past, NSDefaultRunLoopMode, YES);
 			if(!event)break;
+//			log_debug("event = %s", ns_str(event));
 			int handled = handle_event(event);
 			if(!handled)((id (*)(id, SEL, id))objc_msgSend)(NSApp, sel_sendEvent, event);
+
 		}
 		// get the current mouse position
 //		NSPoint p = [window mouseLocationOutsideOfEventStream];
@@ -478,7 +482,7 @@ int main(int argc, char * argv[])
 
 		// get the current scaling setting, incase it has been changed
 		sys_dpi = ((CGFloat (*)(id, SEL))objc_msgSend)(window, sel_backingScaleFactor);
-
+//		log_info("sys_dpi = %f", sys_dpi);
 		// convert the mouse position to what is expected
 		p.x = r.origin.x;
 		p.y = vid_height - r.origin.y;
@@ -494,5 +498,6 @@ int main(int argc, char * argv[])
 
 //	[NSApp setDelegate:nil];
 	((id (*)(id, SEL, id))objc_msgSend)(NSApp, sel_setDelegate, nil);
+	((void (*)(id, SEL))objc_msgSend)(pool, sel_registerName("drain"));
 	return 0;
 }
