@@ -6,6 +6,7 @@
 
 //#define OLD_OPENGL	// or use a modern context
 
+#define LOG_NO_DEBUG
 
 #include "global.h"
 #include "log.h"
@@ -66,7 +67,6 @@ void osx_view_init(void)
 	id glpixelformat = ((id (*)(id, SEL, const uint32_t*))objc_msgSend)(pixelFormatAlloc, initWithAttributes, pixelFormatAttributes);
 	log_debug("glpixelformat = %s", ns_str(glpixelformat));
 
-
 //	NSOpenGLView *view = [[NSOpenGLView alloc] initWithFrame:[[window contentView] bounds] pixelFormat:glpixelformat];
 //	id gl_view_alloc = [NSOpenGLView alloc];
 	Class class_NSOpenGLView = objc_getClass("NSOpenGLView");
@@ -88,8 +88,6 @@ void osx_view_init(void)
 
 	ns_view = view;
 
-//	log_warning("view = %s", ns_str(view));
-
 //	[view setWantsBestResolutionOpenGLSurface:YES];   // enable retina resolutions
 	SEL setWantsBestResolutionOpenGLSurface = sel_registerName("setWantsBestResolutionOpenGLSurface:");
 	((id (*)(id, SEL, BOOL))objc_msgSend)(view, setWantsBestResolutionOpenGLSurface, YES);
@@ -99,6 +97,13 @@ void osx_view_init(void)
 	openGLcontext = ((id (*)(id, SEL))objc_msgSend)(view, sel_openGLContext);
 	log_debug("openGLcontext = %s", ns_str(openGLcontext));
 
+	// do we need to do this?
+//	SEL sel_update = sel_registerName("update");
+//	((void (*)(id, SEL))objc_msgSend)(openGLcontext, sel_update);
+
+	// we definitely need to do this
+	SEL sel_makeCurrent = sel_registerName("makeCurrentContext");
+	((void (*)(id, SEL))objc_msgSend)(openGLcontext, sel_makeCurrent);
 }
 
 SEL sel_flushBuffer;
@@ -145,19 +150,14 @@ void gfx_end(void)
 
 void gfx_resize(void)
 {
-/*
-	SEL sel_bounds = sel_registerName("bounds");
+	SEL sel_frame = sel_registerName("frame");
 	SEL sel_convert = sel_registerName("convertRectToBacking:");
-	Class NSRect = objc_getClass("NSRect");
 
-	CGRect r = ((CGRect (*)(id, SEL))objc_msgSend_stret)(ns_view, sel_bounds);
-	CGRect ns_actual_rect = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)((id)ns_view, sel_convert, r);
+	CGRect r = ((CGRect (*)(id, SEL))objc_msgSend_stret)(ns_view, sel_frame);
+	CGRect ns_actual_rect = ((CGRect (*)(id, SEL, CGRect))objc_msgSend_stret)(ns_view, sel_convert, r);
 
 	vid_width = ns_actual_rect.size.width;
 	vid_height = ns_actual_rect.size.height;
-
-	log_debug("Screen = %d, %d", vid_width, vid_height);
-*/
 
 	glViewport(0, 0, vid_width, vid_height);
 }

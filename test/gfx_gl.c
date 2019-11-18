@@ -29,6 +29,7 @@ int main_init(int argc, char *argv[])
 void main_loop(void)
 {
 	glViewport( 0, 0, vid_width, vid_height);
+
 	// test that the keyboard works
 	if(keys[KEY_ESCAPE])
 	{

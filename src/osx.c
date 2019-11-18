@@ -471,7 +471,6 @@ int main(int argc, char * argv[])
 //			log_debug("event = %s", ns_str(event));
 			int handled = handle_event(event);
 			if(!handled)((id (*)(id, SEL, id))objc_msgSend)(NSApp, sel_sendEvent, event);
-
 		}
 		// get the current mouse position
 //		NSPoint p = [window mouseLocationOutsideOfEventStream];
@@ -490,7 +489,6 @@ int main(int argc, char * argv[])
 		mickey_y -= p.y - mouse_y;
 		mouse_x = p.x;
 		mouse_y = p.y;
-
 		main_loop();
 	}
 
