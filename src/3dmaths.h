@@ -98,7 +98,7 @@ mat4x4 mat4x4_identity(void) __attribute__((const));
 mat4x4 mat4x4_rot_x(float t) __attribute__((const));
 mat4x4 mat4x4_rot_y(float t) __attribute__((const));
 mat4x4 mat4x4_rot_z(float t) __attribute__((const));
-mat4x4 mat4x4_translate(vect v) __attribute__((const));
+mat4x4 mat4x4_translate_vect(vect v) __attribute__((const));
 mat4x4 mat4x4_translate_float(float x, float y, float z) __attribute__((const));
 mat4x4 mat4x4_perspective(float near, float far, float width, float height) __attribute__((const));
 mat4x4 mat4x4_orthographic(float near, float far, float width, float height) __attribute__((const));
