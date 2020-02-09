@@ -30,7 +30,7 @@ void fps_movement(vec4 *position, vec4 *angle, float velocity)
 	// for first person movement
 	position->w = 0.5 / (float)vid_width;
 
-	vect requested = {0,0,0};
+	vec3 requested = {0,0,0};
 
 	if(keys[KEY_LSHIFT])
 		velocity *= 10.0;

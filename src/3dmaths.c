@@ -115,7 +115,7 @@ mat4x4 mat4x4_rot_z(float t)
 	return a;
 }
 
-mat4x4 mat4x4_translate_vect(vect v)
+mat4x4 mat4x4_translate_vec3(vec3 v)
 {
 	mat4x4 a = { .f={
 		1, 0, 0, 0,
@@ -128,8 +128,8 @@ mat4x4 mat4x4_translate_vect(vect v)
 
 mat4x4 mat4x4_translate_float(float x, float y, float z)
 {
-	vect a = { .f={ x, y, z}};
-	return mat4x4_translate_vect(a);
+	vec3 a = { .f={ x, y, z}};
+	return mat4x4_translate_vec3(a);
 }
 
 // http://www.songho.ca/opengl/gl_projectionmatrix.html#perspective
@@ -156,44 +156,44 @@ mat4x4 mat4x4_orthographic(float near, float far, float width, float height)
 }
 
 
-float coord_mag(coord c)
+float vec2_mag(vec2 c)
 {
 	return c.x*c.x + c.y*c.y;
 }
 
-float vect_mag(vect v)
+float vec3_mag(vec3 v)
 {
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-float coord_max(coord c)
+float vec2_max(vec2 c)
 {
 	return c.x >= c.y ? c.x : c.y;
 }
 
-float vect_max(vect v)
+float vec3_max(vec3 v)
 {
 	return (v.x>=v.y && v.x>=v.z) ? v.x : (v.y>=v.z?v.y:v.z);
 }
 
 
-vect vect_norm(vect v)
+vec3 vec3_norm(vec3 v)
 {
 	float len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 	float scale = 1.0f / len;
 	return mul(v,scale);
 }
 
-/* inner product (dot product) of two vectors */
-float vect_dot(vect l, vect r)
+/* inner product (dot product) of two vec3ors */
+float vec3_dot(vec3 l, vec3 r)
 {
 	return l.x * r.x + l.y * r.y + l.z * r.z;
 }
 
-/* outer product (cross product) of two vectors */
-vect vect_cross(vect l, vect r)
+/* outer product (cross product) of two vec3ors */
+vec3 vec3_cross(vec3 l, vec3 r)
 {
-	vect x;
+	vec3 x;
 	x.x = l.y * r.z - l.z * r.y;
 	x.y = l.z * r.x - l.x * r.z;
 	x.z = l.x * r.y - l.y * r.x;
@@ -234,9 +234,9 @@ mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r)
 	return ret;
 }
 
-vect mat4x4_mul_vect(mat4x4 l, vect r)
+vec3 mat4x4_mul_vec3(mat4x4 l, vec3 r)
 {
-	vect x;
+	vec3 x;
 	for (int i = 0; i < 3; i++)
 	{
 		x.f[i] = l.m[i][0]*r.x + l.m[i][1]*r.y + l.m[i][2]*r.z + l.m[i][3];
@@ -278,51 +278,51 @@ mat4x4 mat4x4_sub_mat4x4(mat4x4 l, mat4x4 r)
 }
 
 
-vect vect_mul_vect(vect l, vect r)
+vec3 vec3_mul_vec3(vec3 l, vec3 r)
 {
-	vect x;
+	vec3 x;
 	x.x = l.x * r.x;
 	x.y = l.y * r.y;
 	x.z = l.z * r.z;
 	return x;
 }
 
-vect vect_div_vect(vect l, vect r)
+vec3 vec3_div_vec3(vec3 l, vec3 r)
 {
-	vect x;
+	vec3 x;
 	x.x = l.x / r.x;
 	x.y = l.y / r.y;
 	x.z = l.z / r.z;
 	return x;
 }
 
-vect vect_add_vect(vect l, vect r)
+vec3 vec3_add_vec3(vec3 l, vec3 r)
 {
-	vect x = { .f={ l.x + r.x, l.y + r.y, l.z + r.z }};
+	vec3 x = { .f={ l.x + r.x, l.y + r.y, l.z + r.z }};
 	return x;
 }
 
-vect vect_add_float(vect l, float r)
+vec3 vec3_add_float(vec3 l, float r)
 {
-	vect x = { .f={ l.x + r, l.y + r, l.z + r }};
+	vec3 x = { .f={ l.x + r, l.y + r, l.z + r }};
 	return x;
 }
 
-vect vect_sub_vect(vect l, vect r)
+vec3 vec3_sub_vec3(vec3 l, vec3 r)
 {
-	vect x = { .f={ l.x - r.x, l.y - r.y, l.z - r.z }};
+	vec3 x = { .f={ l.x - r.x, l.y - r.y, l.z - r.z }};
 	return x;
 }
 
-vect vect_mul_float(vect l, float r)
+vec3 vec3_mul_float(vec3 l, float r)
 {
-	vect a = { .f={ l.x*r, l.y*r, l.z*r}};
+	vec3 a = { .f={ l.x*r, l.y*r, l.z*r}};
 	return a;
 }
 
-vect vect_div_float(vect l, float r)
+vec3 vec3_div_float(vec3 l, float r)
 {
-	vect a = { .f={ l.x/r, l.y/r, l.z/r}};
+	vec3 a = { .f={ l.x/r, l.y/r, l.z/r}};
 	return a;
 }
 
@@ -379,9 +379,9 @@ float float_div_float(float l, float r)
 	return l / r;
 }
 
-vect float_sub_vect(float l, vect r)
+vec3 float_sub_vec3(float l, vec3 r)
 {
-	vect x = { .x = l - r.x, .y = l - r.y, .z = l - r.z};
+	vec3 x = { .x = l - r.x, .y = l - r.y, .z = l - r.z};
 	return x;
 }
 
