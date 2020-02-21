@@ -77,7 +77,10 @@ int main(int argc, char *argv[])
 	xcb_flush(xcb);
 
 	if( main_init(argc, argv) )
+	{
+		log_info("Shutdown on : Init Failed");
 		killme = 1;
+	}
 
 	while(!killme) {
 		xcb_generic_event_t *event = xcb_poll_for_event(xcb);

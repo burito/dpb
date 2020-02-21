@@ -612,6 +612,7 @@ int APIENTRY WinMain(HINSTANCE hCurrentInst, HINSTANCE hPrev,
 	for(int i=0; i<argc; i++)free(argv[i]); /* delete args */
 	if(ret)
 	{
+		log_info("Shutdown on : Init Failed");
 		win_end();
 		return ret;
 	}

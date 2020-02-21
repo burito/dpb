@@ -365,6 +365,7 @@ int main(int argc, char* argv[])
 	int ret = main_init(argc, argv);
 	if(ret)
 	{
+		log_info("Shutdown on : Init Failed");
 		x11_end();
 		return ret;
 	}
