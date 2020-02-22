@@ -26,7 +26,7 @@ They have been supported on Microsoft OS's since MS-DOS 2.
 
 On Windows, this library depends on kernel32.lib and windows.h. It's almost
 impossible to compile a windows binary without them, so for all intents and
-purposes, this library has no depenencies.
+purposes, this library has no dependencies.
 
 On Linux & Mac, there are no dependencies.
 
@@ -139,7 +139,7 @@ char* dpb_path_savedgames(void)
 	void (*CoTaskMemFree)();
 	// normal variables
 	PWSTR ppszPath;	// use for SHGetKnownFolderPath
-	DLLVERSIONINFO2 VerInfo2; // for getting the DLL verison info
+	DLLVERSIONINFO2 VerInfo2; // for getting the DLL version info
 	int major_version;
 	// return values
 	HRESULT ret;
