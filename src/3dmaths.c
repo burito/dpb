@@ -139,7 +139,7 @@ mat4x4 mat4x4_perspective(float near, float far, float width, float height)
 		near/(0.5*width), 0, 0, 0,
 		0, near/(0.5*height), 0, 0,
 		0, 0, (-(far+near))/(far-near), (-2*far*near)/(far-near),
-		0, 0, -1, 0  
+		0, 0, -1, 0
 	}};
 	return ret;
 }
@@ -150,7 +150,7 @@ mat4x4 mat4x4_orthographic(float near, float far, float width, float height)
 		1/(0.5*width), 0, 0, 0,
 		0, 1/(0.5*height), 0, 0,
 		0, 0, (-2)/(far-near), -((far*near)/(far-near)),
-		0, 0, 0, 1  
+		0, 0, 0, 1
 	}};
 	return ret;
 }
@@ -201,23 +201,43 @@ vec3 vec3_cross(vec3 l, vec3 r)
 }
 
 /*
-The following functions are to be called via the 
+The following functions are to be called via the
 _Generic() macro's mul(), add() and sub()
 */
+
+mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r)
+{
+	mat3x3 x = {{
+		l.x/r.x, l.x/r.y, l.x/r.z,
+		l.y/r.x, l.y/r.y, l.y/r.z,
+		l.z/r.x, l.z/r.y, l.z/r.z,
+	}};
+	return x;
+}
+
+vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r)
+{
+	vec3 x;
+	for (int i = 0; i < 3; i++)
+	{
+		x.f[i] = l.m[i][0]*r.x + l.m[i][1]*r.y + l.m[i][2]*r.z;
+	}
+	return x;
+}
 
 mat4x4 mat4x4_mov_HmdMatrix34(HmdMatrix34_t x)
 {
 	mat4x4 r = { .f={
-		x.m[0][0], x.m[1][0], x.m[2][0], 0.0f,	
-		x.m[0][1], x.m[1][1], x.m[2][1], 0.0f,	
-		x.m[0][2], x.m[1][2], x.m[2][2], 0.0f,	
-		x.m[0][3], x.m[1][3], x.m[2][3], 1.0f,	
+		x.m[0][0], x.m[1][0], x.m[2][0], 0.0f,
+		x.m[0][1], x.m[1][1], x.m[2][1], 0.0f,
+		x.m[0][2], x.m[1][2], x.m[2][2], 0.0f,
+		x.m[0][3], x.m[1][3], x.m[2][3], 1.0f,
 	}};
 	return r;
 }
 
 mat4x4 mat4x4_mov_HmdMatrix44(HmdMatrix44_t x)
-{			// they're the same, trust me!
+{	// they're the same, trust me!
 	return mat4x4_transpose( *((mat4x4*)((void*)&x)) );
 }
 

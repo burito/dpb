@@ -20,6 +20,12 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 */
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#include <OpenGL/gl3.h>
+#else
+#include <GL/glew.h>
+#endif
 
 char* glError(int error);
 char* glErrorFb(GLenum status);

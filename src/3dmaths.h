@@ -74,6 +74,11 @@ typedef union {
 } vec4;
 
 typedef union {
+	float f[9];
+	float m[3][3];
+} mat3x3;
+
+typedef union {
 	float f[16];
 	float m[4][4];
 } mat4x4;
@@ -123,6 +128,8 @@ float vec3_max(vec3 v) __attribute__((const));
 mat4x4 mat4x4_mov_HmdMatrix34(HmdMatrix34_t x) __attribute__((const));
 mat4x4 mat4x4_mov_HmdMatrix44(HmdMatrix44_t x) __attribute__((const));
 
+vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r) __attribute__((const));
+
 mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r) __attribute__((const));
 vec3 mat4x4_mul_vec3(mat4x4 l, vec3 r) __attribute__((const));
 mat4x4 mat4x4_mul_float(mat4x4 l, float r) __attribute__((const));
@@ -137,6 +144,7 @@ vec3 vec3_div_float(vec3 l, float r) __attribute__((const));
 vec3 vec3_add_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_add_float(vec3 l, float r) __attribute__((const));
 vec3 vec3_sub_vec3(vec3 l, vec3 r) __attribute__((const));
+mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r) __attribute__((const));
 
 float float_mul(float l, float r) __attribute__((const));
 float float_add(float l, float r) __attribute__((const));
@@ -173,12 +181,14 @@ int3 int3_mul_int(int3 l, int r) __attribute__((const));
 
 
 #define mul(X,Y) _Generic(X, \
+	mat3x3: _Generic(Y, \
+		default: mat3x3_mul_vec3), \
 	mat4x4: _Generic(Y, \
 		mat4x4: mat4x4_mul_mat4x4, \
 		vec3: mat4x4_mul_vec3, \
 		default: mat4x4_mul_float), \
 	vec3: _Generic(Y, \
-		vec3: vec3_mul_vec3,	\
+		vec3: vec3_mul_vec3, \
 		default: vec3_mul_float), \
 	int3: _Generic(Y, \
 		default: int3_mul_int), \
@@ -200,7 +210,7 @@ int3 int3_mul_int(int3 l, int r) __attribute__((const));
 
 #define sub(X,Y) _Generic(X, \
 	mat4x4: mat4x4_sub_mat4x4, \
-	vec3: vec3_sub_vec3,	\
+	vec3: vec3_sub_vec3, \
 	float: _Generic(Y, \
 		vec3: float_sub_vec3, \
 		default:float_sub_float), \
@@ -209,7 +219,7 @@ int3 int3_mul_int(int3 l, int r) __attribute__((const));
 
 #define div(X,Y) _Generic(X, \
 	vec3: _Generic(Y, \
-		vec3: vec3_div_vec3,	\
+		vec3: vec3_div_vec3, \
 		default: vec3_div_float), \
 	float: float_div_float, \
 	default: int_div_int \

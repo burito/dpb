@@ -21,8 +21,13 @@ test_3dmaths:
 	$(MAKE) -f test/3dmaths_test.Makefile
 
 
+.PHONY: clean
 clean:
 	@rm -rf $(BUILD_DIR) gfx_* *.exe *.bin *.app
+
+.PHONY:lint
+lint:
+	clang-tidy src/* -header-filter=.* -checks=-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling -- -Ideps/include
 
 
 # Create build directories
