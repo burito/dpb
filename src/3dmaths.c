@@ -200,10 +200,6 @@ vec3 vec3_cross(vec3 l, vec3 r)
 	return x;
 }
 
-/*
-The following functions are to be called via the
-_Generic() macro's mul(), add() and sub()
-*/
 
 mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r)
 {
@@ -214,6 +210,31 @@ mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r)
 	}};
 	return x;
 }
+
+// for testing if a vector is inside a volume
+int vec3_greaterthan_vec3(vec3 l, vec3 r)
+{
+	if(l.x > r.x)
+	if(l.y > r.y)
+	if(l.z > r.z)
+		return 1;
+	return 0;
+}
+
+// for testing if a vector is inside a volume
+int vec3_lessthan_vec3(vec3 l, vec3 r)
+{
+	if(l.x < r.x)
+	if(l.y < r.y)
+	if(l.z < r.z)
+		return 1;
+	return 0;
+}
+
+/*
+The following functions are to be called via the
+_Generic() macro's mul(), add() and sub()
+*/
 
 vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r)
 {
@@ -404,4 +425,3 @@ vec3 float_sub_vec3(float l, vec3 r)
 	vec3 x = { .x = l - r.x, .y = l - r.y, .z = l - r.z};
 	return x;
 }
-

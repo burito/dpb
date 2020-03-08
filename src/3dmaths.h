@@ -115,7 +115,7 @@ vec3 vec3_cross(vec3 l, vec3 r) __attribute__((const));
 
 
 /*
-The following functions are to be called via the 
+The following functions are to be called via the
 _Generic() macro's mag(), max(), mov(), mul(), add() and sub()
 */
 
@@ -145,6 +145,9 @@ vec3 vec3_add_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_add_float(vec3 l, float r) __attribute__((const));
 vec3 vec3_sub_vec3(vec3 l, vec3 r) __attribute__((const));
 mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r) __attribute__((const));
+int vec3_greaterthan_vec3(vec3 l, vec3 r) __attribute__((const));
+int vec3_lessthan_vec3(vec3 l, vec3 r) __attribute__((const));
+
 
 float float_mul(float l, float r) __attribute__((const));
 float float_add(float l, float r) __attribute__((const));
