@@ -236,33 +236,37 @@ The following functions are to be called via the
 _Generic() macro's max(), mul(), add() and sub()
 */
 
-
+// returns the higher of the two int arguments
 int max_int(int l, int r)
 {
 	return l > r ? l : r;
 }
 
+// returns the higher of the two float arguments
 float max_float(float l, float r)
 {
 	return l > r ? l : r;
 }
 
+// returns the higher of the two double arguments
 double max_double(double l, double r)
 {
 	return l > r ? l : r;
 }
 
-
+// returns the lower of the two int arguments
 int min_int(int l, int r)
 {
 	return l < r ? l : r;
 }
 
+// returns the lower of the two float arguments
 float min_float(float l, float r)
 {
 	return l < r ? l : r;
 }
 
+// returns the lower of the two double arguments
 double min_double(double l, double r)
 {
 	return l < r ? l : r;
