@@ -233,8 +233,41 @@ int vec3_lessthan_vec3(vec3 l, vec3 r)
 
 /*
 The following functions are to be called via the
-_Generic() macro's mul(), add() and sub()
+_Generic() macro's max(), mul(), add() and sub()
 */
+
+
+int max_int(int l, int r)
+{
+	return l > r ? l : r;
+}
+
+float max_float(float l, float r)
+{
+	return l > r ? l : r;
+}
+
+double max_double(double l, double r)
+{
+	return l > r ? l : r;
+}
+
+
+int min_int(int l, int r)
+{
+	return l < r ? l : r;
+}
+
+float min_float(float l, float r)
+{
+	return l < r ? l : r;
+}
+
+double min_double(double l, double r)
+{
+	return l < r ? l : r;
+}
+
 
 vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r)
 {

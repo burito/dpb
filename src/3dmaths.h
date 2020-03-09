@@ -170,12 +170,35 @@ int3 int3_mul_int(int3 l, int r) __attribute__((const));
 	vec3: vec3_mag \
 	)(X)
 
-// returns the largest item in a vec3or
+// returns the largest item in a vector
 #define vmax(X) _Generic(X, \
 	vec2: vec2_max, \
 	vec3: vec3_max \
 	)(X)
 
+
+int max_int(int l, int r) __attribute__((const));
+float max_float(float l, float r) __attribute__((const));
+double max_double(double l, double r) __attribute__((const));
+
+// returns the largest item in a vector
+#define max(X,Y) _Generic(X, \
+	int: max_int, \
+	float: max_float, \
+	double: max_double \
+	)(X,Y)
+
+
+int min_int(int l, int r) __attribute__((const));
+float min_float(float l, float r) __attribute__((const));
+double min_double(double l, double r) __attribute__((const));
+
+// returns the largest item in a vector
+#define min(X,Y) _Generic(X, \
+	int: min_int, \
+	float: min_float, \
+	double: min_double \
+	)(X,Y)
 
 #define mov(X) _Generic(X, \
 	HmdMatrix34_t: mat4x4_mov_HmdMatrix34, \
