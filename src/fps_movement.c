@@ -90,10 +90,12 @@ void fps_movement(vec4 *position, vec4 *angle, float velocity)
 	}
 	if(keys[KEY_P])
 	{
-		log_info("vec4 pos = {%f, %f, %f, 0.0};",
-			position->x, position->y, position->z);
-		log_info("vec4 angle = {%f, %f, %f, M_PI*0.5};",
+		log_info("Current Position is\n"
+			"vec4 position = {{%f, %f, %f, 0.0}};\n"
+			"vec4 angle = {{%f, %f, %f, M_PI*0.5}};",
+			position->x, position->y, position->z,
 			angle->x, angle->y, angle->z);
+		keys[KEY_P] = 0;
 	}
 
 	if(p_swim)
