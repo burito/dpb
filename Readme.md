@@ -59,6 +59,7 @@ Yes, the version of Internet Explorer matters with Win9x. If you want to be clev
 * [```deps/ctap```](https://github.com/jhunt/ctap) - James Hunt
 * ```deps/*gl*``` - [GLEW 2.1.0](http://glew.sourceforge.net/)
     * Add ```#define GLEW_STATIC``` to the top of ```glew.h```
+* [```deps/hidapi```](https://github.com/signal11/hidapi) - Alan Ott, under BSD License
 
 ## Thanks
 * Dmytro Ivanov for [osx_app_in_plain_c](https://github.com/jimon/osx_app_in_plain_c), which has been invaluable for the OSX code.
