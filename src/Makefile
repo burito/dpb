@@ -146,7 +146,7 @@ clean:
 	@rm -rf build $(BINARY_NAME) $(BINARY_NAME).exe $(BINARY_NAME).bin $(BINARY_NAME).app
 
 # create the build directories
-$(shell mkdir -p $(WIN_DIR) $(LIN_DIR) $(MAC_DIR))
+$(shell mkdir -p $(WIN_DIR)/windows $(LIN_DIR)/linux $(MAC_DIR)/mac)
 
 # create the version info
 GIT_VERSION:=$(shell git describe --dirty --always --tags)
