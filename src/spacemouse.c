@@ -105,6 +105,12 @@ void spacemouse_init(void)
 	}
 	hid_free_enumeration(hid_device_info);
 
+	if(vendor_id == 0)
+	{
+		// no device found
+		return;
+	}
+
 	spacemouse = hid_open(vendor_id, product_id, NULL);
 	if(spacemouse == NULL)
 	{
