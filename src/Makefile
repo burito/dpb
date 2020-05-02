@@ -51,11 +51,17 @@ MAC_DIR = $(BUILD_DIR)/mac
 
 OUT_DIR = $(BUILD_DIR)/$(PLATFORM)
 
+# for HID library
+WIN_LIBS += -lsetupapi
+LIN_LIBS += `pkg-config libudev --libs` -lrt
+MAC_LIBS += -framework IOKit -framework CoreFoundation
+
 $(shell mkdir -p $(WIN_DIR) $(LIN_DIR) $(MAC_DIR))
 
 WIN_OBJS = $(patsubst %,$(WIN_DIR)/%,$(_WIN_OBJS))
 LIN_OBJS = $(patsubst %,$(LIN_DIR)/%,$(_LIN_OBJS))
 MAC_OBJS = $(patsubst %,$(MAC_DIR)/%,$(_MAC_OBJS))
+
 
 
 $(WIN_DIR)/%.o: %.c

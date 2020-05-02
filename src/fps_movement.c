@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
 #include "3dmaths.h"
 #include "global.h"
 #include "log.h"
+#include "spacemouse.h"
 
 static int p_swim = 0;
 
@@ -105,6 +106,13 @@ void fps_movement(vec4 *position, vec4 *angle, float velocity)
 		requested.z = ty * sx + requested.z * cx;
 	}
 
+	requested.x -= spacemouse_translation.x * 0.03;
+	requested.y += spacemouse_translation.z * 0.03;
+	requested.z += spacemouse_translation.y * 0.03;
+
+	angle->x -= spacemouse_rotation.x * 0.03;
+	angle->y += spacemouse_rotation.z * 0.03;
+	angle->z += spacemouse_rotation.y * 0.03;
 
 	float cy = cos(angle->y), sy = sin(angle->y), tx = requested.x;
 	requested.x = requested.x * cy + requested.z * sy; // around y
