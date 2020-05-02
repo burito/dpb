@@ -158,6 +158,12 @@ static void x11_init(void)
 	memset(mouse, 0, 3);
 
 	display = XOpenDisplay(0);
+	if(display == NULL)
+	{
+		log_error("XOpenDisplay(), if debugging ensure the DISPLAY "
+			"environment variable is passed to the program");
+		exit(1);
+	}
 	Screen *screen_ptr = DefaultScreenOfDisplay(display);
 	sys_width = XWidthOfScreen(screen_ptr);
 	sys_height = XHeightOfScreen(screen_ptr);
@@ -381,5 +387,3 @@ int main(int argc, char* argv[])
 	x11_end();
 	return 0;
 }
-
-
