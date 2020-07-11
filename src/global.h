@@ -101,3 +101,8 @@ void sys_event_init(void);
 int sys_event_read(struct sys_event *event);
 int sys_event_write(struct sys_event event);
 uint16_t sys_key_modifiers(void);
+
+// For the graphics library, whatever is used
+void gfx_init(void);
+void gfx_end(void);
+void gfx_swap(void);
