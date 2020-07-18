@@ -479,10 +479,15 @@ static void win_init(void)
 		sys_dpi = (float)dpi_x / 96.0;
 	}
 
-	xinput_dll = LoadLibrary("XINPUT1_3.dll");
+	xinput_dll = LoadLibrary("XINPUT1_4.dll"); // current version in latest Win10
 	if(xinput_dll == NULL)
 	{
-		log_warning("XInput not found (XINPUT1_3.dll)");
+		xinput_dll = LoadLibrary("XINPUT1_3.dll"); // for compatibility with older
+	}
+	// if didn't get the new or the older one, time to complain
+	if(xinput_dll == NULL)
+	{
+		log_warning("XInput not found (XINPUT1_4.dll)");
 		log_warning("XInput, a part of DirectX, is needed for Xbox360 Controller support");
 		log_warning("See: https://www.microsoft.com/en-us/download/details.aspx?id=35");
 	}
