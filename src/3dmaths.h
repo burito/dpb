@@ -182,7 +182,7 @@ float max_float(float l, float r) __attribute__((const));
 double max_double(double l, double r) __attribute__((const));
 
 // returns the higher of the two arguments
-#define max(X,Y) _Generic(X, \
+#define nmax(X,Y) _Generic(X, \
 	int: max_int, \
 	float: max_float, \
 	double: max_double \
@@ -194,7 +194,7 @@ float min_float(float l, float r) __attribute__((const));
 double min_double(double l, double r) __attribute__((const));
 
 // returns the lower of the two arguments
-#define min(X,Y) _Generic(X, \
+#define nmin(X,Y) _Generic(X, \
 	int: min_int, \
 	float: min_float, \
 	double: min_double \

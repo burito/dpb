@@ -18,12 +18,12 @@ TESTS {
 
 	ok( mat4x4_equals( a, b ), "transpose identity" );
 
-	ok( min(2,4)==2, "min(2,4)" );
-	ok( min(2.0f,4.0f)==2.0f, "min(2.0f,4.0f)" );
-	ok( min(2.0,4.0)==2.0, "min(2.0,4.0)" );
+	ok( nmin(2,4)==2, "nmin(2,4)" );
+	ok( nmin(2.0f,4.0f)==2.0f, "nmin(2.0f,4.0f)" );
+	ok( nmin(2.0,4.0)==2.0, "nmin(2.0,4.0)" );
 
-	ok( max(2,4)==4, "max(2,4)" );
-	ok( max(2.0f,4.0f)==4.0f, "max(2.0f,4.0f)" );
-	ok( max(2.0,4.0)==4.0, "max(2.0,4.0)" );
+	ok( nmax(2,4)==4, "nmax(2,4)" );
+	ok( nmax(2.0f,4.0f)==4.0f, "nmax(2.0f,4.0f)" );
+	ok( nmax(2.0,4.0)==4.0, "nmax(2.0,4.0)" );
 
 }
