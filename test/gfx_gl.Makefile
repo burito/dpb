@@ -2,7 +2,7 @@ COMPANY = Daniel Burke
 COPYRIGHT = 2019
 DESCRIPTION = OpenGL Test
 BINARY_NAME = gfx_gl
-CFLAGS = -std=c11 -Ideps/include -Isrc -DOLD_OPENGL -Wall
+CFLAGS = -std=c11 -Ideps -Isrc -DOLD_OPENGL -Wall
 OBJS =  log.o global.o version.o gfx_gl.o
 VPATH = src test deps
 
@@ -27,4 +27,3 @@ $(MAC_CONTENTS)/_CodeSignature/CodeResources : \
 $(MAC_CONTENTS)/MacOS/$(BINARY_NAME): $(BINARY_NAME).bin
 	@mkdir -p $(MAC_CONTENTS)/MacOS
 	cp $< $@
-

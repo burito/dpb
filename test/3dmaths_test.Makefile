@@ -2,7 +2,7 @@ COMPANY = Daniel Burke
 COPYRIGHT = 2019
 DESCRIPTION = 3D Maths Test
 BINARY_NAME = mathtest
-CFLAGS = -std=c11 -Isrc -Ideps/include -Wall -pedantic
+CFLAGS = -std=c11 -Ideps -Isrc -Wall -pedantic
 OBJS = 3dmaths_test.o 3dmaths.o
 VPATH = src test
 WIN_LIBS =
