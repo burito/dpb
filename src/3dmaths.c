@@ -21,7 +21,8 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include "invert4x4_sse.h"
+// NOTE: can change from C to SSE or LLVM versions for unmeasured perf change
+#include "../deps/small-matrix-inverse/invert4x4_c.h"
 
 #include <math.h>
 #include <stdio.h>
