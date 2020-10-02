@@ -21,6 +21,6 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include <openvr/openvr_capi.h>
+#include <openvr/headers/openvr_capi.h>
 
 char* vrc_error(EVRCompositorError x);
