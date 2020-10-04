@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 500	// for strdup on linux
+
 #include <ctap/include/ctap.h>
 
 #include "mesh.h"
@@ -28,7 +30,7 @@ TESTS {
 
 	free(w);
 */
-	w = wf_load("../models/lpshead/head.obj");
+	w = wf_load("../models/lpshead/head.OBJ");
 	ok( w != NULL, "wf_load lpshead" );
 	is_int( w->num_verticies, 8844, "lpshead Vertex count" );
 	is_int( w->num_faces, 8842, "lpshead Face count" );

@@ -324,22 +324,7 @@ void wf_interleave(WF_OBJ *w)
 //	free(w->vn); w->vn = 0;
 }
 
-static void wf_face_normals(WF_OBJ *w)
-{
-	if(!w)return;
-	if(!w->nf)return;
 
-	vec3 a, b, t;
-
-	// Generate per face normals
-	for(int i=0; i<w->nf; i++)
-	{
-		a = sub( w->v[w->f[i].f.x], w->v[w->f[i].f.y] );
-		b = sub( w->v[w->f[i].f.x], w->v[w->f[i].f.z] );
-		t = vec3_cross( a, b );
-		w->f[i].normal = vec3_norm( t );
-	}
-}
 
 
 static void wf_vertex_normals(WF_OBJ *w)
@@ -448,48 +433,149 @@ static void wf_texvec2s(WF_OBJ *w)
 }
 
 #ifdef NO
-static void wf_gpu_load(WF_OBJ *w)
-{
-	if(!w)return;
-	w->va = w->ab = w->eb  = 0;
 
-	glGenVertexArrays( 1, &w->va );
-	glBindVertexArray( w->va );
-
-	glGenBuffers(1, &w->ab);
-	glBindBuffer( GL_ARRAY_BUFFER, w->ab);
-	glBufferData( GL_ARRAY_BUFFER, w->nv*sizeof(struct packed_verts), w->pv, GL_STATIC_DRAW );
-
-	glGenBuffers( 1, &w->eb );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->eb );
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, w->nf*12, w->vf, GL_STATIC_DRAW );
-
-	glEnableVertexAttribArray( 0 );
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)0 );
-
-	glEnableVertexAttribArray( 1 );
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)12 );
-
-	glEnableVertexAttribArray( 2 );
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)24 );
-
-	glBindVertexArray( 0 );
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-
-void wf_draw(WF_OBJ *w)
-{
-	if(!w)return;
-	glBindVertexArray( w->va );
-	glDrawElements( GL_TRIANGLES, w->nf*3, GL_UNSIGNED_INT, 0 );
-	glBindVertexArray( 0 );
-	return;
-}
 #endif
 
 #endif
+
+/*
+ * Generate per face normals.
+ */
+static void wf_face_normals(struct WF_OBJ *w)
+{
+	if(!w)return;
+	if(!w->num_triangles)return;
+
+	vec3 a, b, t;
+
+	for(int i=0; i<w->num_triangles; i++)
+	{
+		struct WF_TRIANGLE *triangle = &w->triangles[i];
+		a = sub( w->verticies[triangle->verticies.x], w->verticies[triangle->verticies.y] );
+		b = sub( w->verticies[triangle->verticies.x], w->verticies[triangle->verticies.z] );
+		t = vec3_cross( a, b );
+		triangle->normal = vec3_norm( t );
+	}
+}
+
+
+/*
+ * Calculate the normals of the object.
+ */
+void wf_normals(struct WF_OBJ *w)
+{
+	if(!w)return;
+
+	w->num_smoothgroups = 1; // there's always 1, the 0th group, aka "off"
+	w->smoothgroup_table = malloc( sizeof(struct smoothgroup_table) * MAX_SMOOTHGROUPS);
+	if(w->smoothgroup_table == NULL)
+	{
+		log_fatal("malloc(smoothgroup_table) = %d", strerror(errno));
+		return; // TODO: return error
+	}
+
+	memset(w->smoothgroup_table, 0, sizeof(struct smoothgroup_table) * MAX_SMOOTHGROUPS);
+	for(int i=0; i< w->num_triangles; i++)
+	{
+		struct WF_TRIANGLE *triangle = &w->triangles[i];
+		if(triangle->smoothgroup == 0)
+		{ // simple case
+			w->smoothgroup_table[0].count++;
+			continue;
+		}
+		// find an existing entry that matches
+		for(int j=1; j<w->num_smoothgroups; j++)
+		{
+			if( triangle->smoothgroup == w->smoothgroup_table[j].id )
+			{// it matches an existing entry
+				w->smoothgroup_table[j].count++;
+				// update the triangle
+				triangle->smoothgroup = j;
+				goto WF_NORMALS_SMOOTHGROUP_CONTINUE;
+			}
+		}
+		// we've search everywhere, this smoothgroup is the first of its kind
+		if(w->num_smoothgroups == MAX_SMOOTHGROUPS-1)
+		{// woops, out of empty table entries, jam it in the last slot
+			log_warning("Assumption broken, increase MAX_SMOOTHGROUPS.");
+			w->smoothgroup_table[w->num_smoothgroups].count++;
+			triangle->smoothgroup = MAX_SMOOTHGROUPS-1;
+		}
+		else
+		{// still space left, record it properly
+			w->smoothgroup_table[w->num_smoothgroups].id = triangle->smoothgroup;
+			w->smoothgroup_table[w->num_smoothgroups].count++;
+			triangle->smoothgroup = w->num_smoothgroups;
+			w->num_smoothgroups++;
+		}
+		// and onto the next
+WF_NORMALS_SMOOTHGROUP_CONTINUE:
+		continue;
+	}
+
+	// Print out the smoothgroups for debugging
+	for(int i=0; i<w->num_smoothgroups; i++)
+	{
+		struct smoothgroup_table *entry = &w->smoothgroup_table[i];
+		log_info("Smoothgroup[%d] = {%d, %d}", i, entry->id, entry->count);
+	}
+
+	// find out how many triangles each vertex is in
+	int *vertex_face_count = malloc(sizeof(int) * w->num_verticies);
+	memset(vertex_face_count, 0, sizeof(int) * w->num_verticies);
+	for(int i=0; i<w->num_triangles; i++)
+	{
+		struct WF_TRIANGLE *triangle = &w->triangles[i];
+		for(int j=0; j<3; j++)
+		{
+			vertex_face_count[triangle->verticies.i[j]]++;
+		}
+	}
+
+	int min_faces = vertex_face_count[0];
+	int max_faces = 0;
+	for(int i=0; i<w->num_verticies; i++)
+	{
+		if( max_faces < vertex_face_count[i] )
+			max_faces = vertex_face_count[i];
+		if( min_faces > vertex_face_count[i] )
+			min_faces = vertex_face_count[i];
+	}
+
+	log_debug("min = %d, max = %d", min_faces, max_faces);
+
+
+
+	// now we know how many smoothgroups there are, we can start sorting verticies
+	// if a vertex is in more than one smoothgroup, it must be duplicated
+	// because we are rendering with per-vertex normals
+	// create a table, listing which smoothgroups each vertex is in
+	for(int i=0; i<w->num_triangles; i++)
+	{
+
+	}
+
+	// now normalise the smoothgroup numbers to something sane
+	//  walk through the faces, identifying unique smoothgroups
+
+
+
+	// now allocate a 2d array of the form array[num_verticies][num_smoothgroups]
+
+
+
+/*
+	if(w->vn)free(w->vn);
+	w->vn = malloc(sizeof(vec3)*w->nv);
+	memset(w->vn, 0, sizeof(vec3)*w->nv);
+	w->nn = w->nv;
+
+	wf_face_normals(w);
+	wf_vertex_normals(w);
+*/
+
+}
+
 
 /*
  * Finds the total volume needed to contain the object, and scales it to 1.
@@ -569,7 +655,7 @@ int wf_count_face(struct WF_OBJ *w, char *line)
 	} while( token != NULL);
 
 	w->num_triangles += num_triangles;
-	w->smoothgroups[w->current_smoothgroup] += num_triangles;
+//	w->smoothgroups[w->current_smoothgroup] += num_triangles;
 	return num_triangles;
 }
 
@@ -582,6 +668,7 @@ void wf_count_group(struct WF_OBJ *w, char *line)
 
 void wf_count_smoothgroup(struct WF_OBJ *w, char *line)
 {
+/*
 	int smoothgroup = 0;
 	int found = sscanf(line, "s %d", &smoothgroup);
 	if(!found)
@@ -595,6 +682,7 @@ void wf_count_smoothgroup(struct WF_OBJ *w, char *line)
 //		log_debug("smoothgroup set to %d", smoothgroup);
 	}
 	w->current_smoothgroup = smoothgroup;
+*/
 	return;
 }
 
@@ -613,14 +701,12 @@ void wf_count_material(struct WF_OBJ *w, char *line)
 */
 void wf_parse_vertex(struct WF_OBJ *w, char *line)
 {
-	char delim[] = " \n\r";
-	char *saveptr = NULL;
-	char *token = NULL;
-	token = strtok_r(line, delim, &saveptr);
+	line++;
 	for(int i=0; i<3; i++)
 	{
-		token = strtok_r(NULL, delim, &saveptr);
-		w->verticies[w->num_verticies].f[i] = fast_atof(token);
+		while( (*line == ' ' || *line == '\t') ) line++;
+		w->verticies[w->num_verticies].f[i] = fast_atof(line);
+		while( !(*line == ' ' || *line == '\t' || *line == '\n' || *line == '\r' || *line == 0 ) ) line++;
 	}
 	wf_count_vertex(w, line);
 	return;
@@ -632,14 +718,12 @@ void wf_parse_vertex(struct WF_OBJ *w, char *line)
 */
 void wf_parse_normal(struct WF_OBJ *w, char *line)
 {
-	char delim[] = " \n\r";
-	char *saveptr = NULL;
-	char *token = NULL;
-	token = strtok_r(line, delim, &saveptr);
+	line++;
 	for(int i=0; i<3; i++)
 	{
-		token = strtok_r(NULL, delim, &saveptr);
-		w->normals[w->num_normals].f[i] = fast_atof(token);
+		while( (*line == ' ' || *line == '\t') ) line++;
+		w->normals[w->num_normals].f[i] = fast_atof(line);
+		while( !(*line == ' ' || *line == '\t' || *line == '\n' || *line == '\r' || *line == 0 ) ) line++;
 	}
 	wf_count_normal(w, line);
 	return;
@@ -651,17 +735,49 @@ void wf_parse_normal(struct WF_OBJ *w, char *line)
  */
 void wf_parse_texcoord(struct WF_OBJ *w, char *line)
 {
-	char delim[] = " \n\r";
-	char *saveptr = NULL;
-	char *token = NULL;
-	token = strtok_r(line, delim, &saveptr);
+	line++;
 	for(int i=0; i<2; i++)
 	{
-		token = strtok_r(NULL, delim, &saveptr);
-		w->texcoords[w->num_texcoords].f[i] = fast_atof(token);
+		while( (*line == ' ' || *line == '\t') ) line++;
+		w->texcoords[w->num_texcoords].f[i] = fast_atof(line);
+		while( !(*line == ' ' || *line == '\t' || *line == '\n' || *line == '\r' || *line == 0 ) ) line++;
 	}
 	wf_count_texcoord(w, line);
 	return;
+}
+
+/*
+ * helper function for wf_parse_face() to read a corner
+ */
+void wf_parse_face_corner(struct WF_OBJ *w, struct WF_TRIANGLE_CORNER *corner, char *line)
+{
+	int value = atoi(line);
+	if(value < 0) value = value + w->num_verticies;
+	corner->vertex = value;
+
+	// find the next non-number (or hyphen)
+	while( (*line >= '0' && *line <= '9') || *line == '-' ) line++;
+
+	// if it's not a '/', then we're done
+	if(*line != '/')return;
+
+	// otherwise, we can treat it as another value
+	line++;
+	value = atoi(line);
+	if(value < 0) value = value + w->num_texcoords;
+	corner->texcoord = value;
+
+	// if we just read a number, move past it
+	while( (*line >= '0' && *line <= '9') || *line == '-' ) line++;
+
+	// if we don't find a second slash, we're done
+	if( *line != '/' )return;
+
+	// otherwise, read the last value
+	line++;
+	value = atoi(line);
+	if(value < 0) value = value + w->num_normals;
+	corner->normal = value;
 }
 
 /*
@@ -670,70 +786,44 @@ void wf_parse_texcoord(struct WF_OBJ *w, char *line)
  * Assume all polygons are convex, so can convert them to triangle fans.
  * Negative indicies indicate "relative to the last defined item",
  * which is why we're keeping a running count.
+ * Also possible "1/2", "1//2"
  */
 void wf_parse_face(struct WF_OBJ *w, char *line)
 {
 	int num_triangles =  wf_count_face(w, line);
 	int offset = w->num_triangles - num_triangles;
 
-	int value;
+	line++;
 	// parse the first triangle
 	for(int i=0; i<3; i++)
 	{
-		// find the next number
-		while( !(*line >= '0' && *line <= '9') ) line++;
-		value = atoi(line);
-		if(value < 0) value = value + w->num_verticies;
-		w->triangles[offset].verticies.i[i] = value;
+		// find the next not space
+		while( *line == ' ' || *line == '\t' || *line == 0 ) line++;
 
-		// find the next slash
-		while( *line != '/' ) line++;
-		line++;
-		value = atoi(line);
-		if(value < 0) value = value + w->num_texcoords;
-		w->triangles[offset].texcoords.i[i] = value;
-
-		// find the next slash
-		while( *line != '/' ) line++;
-		line++;
-		value = atoi(line);
-		if(value < 0) value = value + w->num_normals;
-		w->triangles[offset].normals.i[i] = value;
+		wf_parse_face_corner(w, &w->triangles[offset].corner[i], line);
 
 		// find the next space
 		while( !(*line == ' ' || *line == '\n' || *line == '\r' || *line == 0) ) line++;
 	}
+	// write which smoothgroup this face is in
+	w->triangles[offset].smoothgroup = w->current_smoothgroup;
 
 	// now parse the remaining triangles
 	int first = offset;
 	offset++;
 	for(; offset < w->num_triangles; offset++)
 	{
+		// write which smoothgroup this face is in
+		w->triangles[offset].smoothgroup = w->current_smoothgroup;
+
 		// the first two corners go in every triangle
-		w->triangles[offset].verticies.xy = w->triangles[first].verticies.xy;
-		w->triangles[offset].texcoords.xy = w->triangles[first].texcoords.xy;
-		w->triangles[offset].normals.xy = w->triangles[first].normals.xy;
+		w->triangles[offset].corner[0] = w->triangles[first].corner[0];
+		w->triangles[offset].corner[1] = w->triangles[first].corner[1];
 
-		// now parse the third corner just as before
-		// find the next number
-		while( !(*line >= '0' && *line <= '9') ) line++;
-		value = atoi(line);
-		if(value < 0) value = value + w->num_verticies;
-		w->triangles[offset].verticies.z = value;
+		// find the next not space
+		while( *line == ' ' || *line == '\t' || *line == 0 ) line++;
 
-		// find the next slash
-		while( *line != '/' ) line++;
-		line++;
-		value = atoi(line);
-		if(value < 0) value = value + w->num_texcoords;
-		w->triangles[offset].texcoords.z = value;
-
-		// find the next slash
-		while( *line != '/' ) line++;
-		line++;
-		value = atoi(line);
-		if(value < 0) value = value + w->num_normals;
-		w->triangles[offset].normals.z = value;
+		wf_parse_face_corner(w, &w->triangles[offset].corner[2], line);
 
 		// find the next space
 		while( !(*line == ' ' || *line == '\n' || *line == '\r' || *line == 0) ) line++;
@@ -742,6 +832,9 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 	return;
 }
 
+/*
+ * I don't know what purpose groups serve, insofar as rendering is concerned
+ */
 void wf_parse_group(struct WF_OBJ *w, char *line)
 {
 	wf_count_group(w, line);
@@ -752,6 +845,13 @@ void wf_parse_group(struct WF_OBJ *w, char *line)
 void wf_parse_smoothgroup(struct WF_OBJ *w, char *line)
 {
 	wf_count_smoothgroup(w, line);
+
+	line++;
+	// find the next non space character
+	while( (*line == ' ' || *line == '\t') ) line++;
+
+	w->current_smoothgroup = atoi(line);
+//	log_info("sg found = %d", w->current_smoothgroup);
 	return;
 }
 
@@ -770,39 +870,43 @@ int wf_alloc_first_buffers(struct WF_OBJ *w)
 	// alloc the memory
 	if(w->num_verticies)
 	{
-		w->verticies = malloc(sizeof(vec3)*w->num_verticies);
+		w->verticies = malloc( sizeof(vec3)*w->num_verticies );
 		if(w->verticies == NULL)
 		{
 			log_fatal("malloc(verticies) = %d", strerror(errno));
 			goto WF_ALLOC_VERTICIES;
 		}
+		memset( w->verticies, 0, sizeof(vec3)*w->num_verticies );
 	}
 	if(w->num_texcoords)
 	{
-		w->texcoords = malloc(sizeof(vec2)*w->num_texcoords);
+		w->texcoords = malloc( sizeof(vec2)*w->num_texcoords );
 		if(w->texcoords == NULL)
 		{
 			log_fatal("malloc(texcoords) = %d", strerror(errno));
 			goto WF_ALLOC_TEXCOORDS;
 		}
+		memset( w->texcoords, 0, sizeof(vec2)*w->num_texcoords );
 	}
 	if(w->num_normals)
 	{
-		w->normals = malloc(sizeof(vec3)*w->num_normals);
+		w->normals = malloc( sizeof(vec3)*w->num_normals );
 		if(w->normals == NULL)
 		{
 			log_fatal("malloc(normals) = %d", strerror(errno));
 			goto WF_ALLOC_NORMALS;
 		}
+		memset( w->normals, 0, sizeof(vec3)*w->num_normals );
 	}
 	if(w->num_triangles)
 	{
-		w->triangles = malloc( sizeof(struct WF_TRIANGLE) * w->num_triangles);
+		w->triangles = malloc( sizeof(struct WF_TRIANGLE) * w->num_triangles );
 		if(w->triangles == NULL)
 		{
 			log_fatal("malloc(triangles) = %d", strerror(errno));
 			goto WF_ALLOC_TRIANGLES;
 		}
+		memset( w->triangles, 0, sizeof(struct WF_TRIANGLE) * w->num_triangles );
 	}
 
 	/* Replaces this horrible code
@@ -874,7 +978,7 @@ struct WF_OBJ* wf_parse(char *filename)
 	case 'm':
 		if(strstr(line, "mtllib"))
 			wf_count_material(w, line);
-			log_info("mtl");
+//			log_info("mtl");
 		break;
 	case 'v':	// vertex data
 		switch(line[1]) {
@@ -891,18 +995,9 @@ struct WF_OBJ* wf_parse(char *filename)
 	case 's': wf_count_smoothgroup(w, line); break;
 	}
 
-	for(int i=0; i<MAX_SMOOTHGROUPS; i++)
-	{
-		if(w->smoothgroups[i] > 0)
-		{
-			log_info("Smoothgroup[%d] = %d", i, w->smoothgroups[i]);
-		}
-	}
-
-
-	log_info("Verticies=%d, Normals=%d, Texcoords=%d, Faces=%d, Triangles=%d",
+	log_info("Verticies=%d, Normals=%d, Texcoords=%d, Faces=%d, Triangles=%d, Groups=%d, Materials=%d",
 		w->num_verticies, w->num_normals, w->num_texcoords, w->num_faces,
-		w->num_triangles);
+		w->num_triangles, w->num_groups, w->num_materials);
 
 	if( wf_alloc_first_buffers(w) )
 	{
@@ -926,7 +1021,7 @@ struct WF_OBJ* wf_parse(char *filename)
 	case 'm':
 		if(strstr(line, "mtllib"))
 			wf_parse_material(w, line);
-			log_info("mtl");
+//			log_info("mtl");
 		break;
 	case 'v':	// vertex data
 		switch(line[1]) {
@@ -975,7 +1070,8 @@ struct WF_OBJ* wf_load(char * filename)
 		return NULL;
 	}
 
-	wf_bound(w);
+//	wf_bound(w);
+	wf_normals(w);
 /*
 	if(w->nv != w->nn)wf_normals(w);
 	wf_texvec2s(w);
@@ -1021,13 +1117,29 @@ void wf_free(struct WF_OBJ *w)
 	free(w);
 }
 
-
+/*
 int main(int argc, char *argv[])
 {
 	log_init();
 	struct WF_OBJ *w;
+//	w = wf_load("../models/lpshead/head.OBJ");
+//	wf_free(w);
+	w = wf_load("../models/bunny/bunny.obj");
+	wf_free(w);
 	w = wf_load("../models/sponza/sponza.obj");
 	wf_free(w);
+	w = wf_load("../models/buddha/buddha.obj");
+	wf_free(w);
+	w = wf_load("../models/hairball/hairball.obj");
+	wf_free(w);
+	w = wf_load("../models/San_Miguel/san-miguel-low-poly.obj");
+	wf_free(w);
+	w = wf_load("../models/San_Miguel/san-miguel.obj");
+	wf_free(w);
+	w = wf_load("../models/powerplant/powerplant.obj");
+	wf_free(w);
+
 
 	return 0;
 }
+*/

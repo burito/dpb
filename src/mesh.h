@@ -36,11 +36,20 @@ struct WF_MTL
 	int nf;
 };
 
+struct WF_TRIANGLE_CORNER
+{
+	int vertex;
+	int texcoord;
+	int normal;
+};
+
+
 struct WF_TRIANGLE
 {
+	struct WF_TRIANGLE_CORNER corner[3];
 	int3 verticies, texcoords, normals;
 	vec3 normal;
-	int s, g;
+	int smoothgroup;
 	struct WF_MTL *m;
 };
 
@@ -49,6 +58,11 @@ struct packed_verts {
 	vec3 p;
 	vec3 n;
 	vec2 uv;
+};
+
+struct smoothgroup_table {
+	int id;
+	int count;
 };
 
 struct WF_OBJ
@@ -70,6 +84,9 @@ struct WF_OBJ
 
 	int current_smoothgroup;
 	int *smoothgroups;
+
+	int num_smoothgroups;
+	struct smoothgroup_table *smoothgroup_table;
 
 	int  ng, ns, nm;
 	vec3 *v, *vt, *vn, *fn;
