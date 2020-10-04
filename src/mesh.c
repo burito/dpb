@@ -451,8 +451,8 @@ static void wf_face_normals(struct WF_OBJ *w)
 	for(int i=0; i<w->num_triangles; i++)
 	{
 		struct WF_TRIANGLE *triangle = &w->triangles[i];
-		a = sub( w->verticies[triangle->verticies.x], w->verticies[triangle->verticies.y] );
-		b = sub( w->verticies[triangle->verticies.x], w->verticies[triangle->verticies.z] );
+		a = sub( w->verticies[triangle->corner[0].vertex], w->verticies[triangle->corner[1].vertex] );
+		b = sub( w->verticies[triangle->corner[0].vertex], w->verticies[triangle->corner[2].vertex] );
 		t = vec3_cross( a, b );
 		triangle->normal = vec3_norm( t );
 	}
@@ -528,7 +528,7 @@ WF_NORMALS_SMOOTHGROUP_CONTINUE:
 		struct WF_TRIANGLE *triangle = &w->triangles[i];
 		for(int j=0; j<3; j++)
 		{
-			vertex_face_count[triangle->verticies.i[j]]++;
+			vertex_face_count[triangle->corner[j].vertex]++;
 		}
 	}
 
@@ -1117,13 +1117,13 @@ void wf_free(struct WF_OBJ *w)
 	free(w);
 }
 
-/*
+
 int main(int argc, char *argv[])
 {
 	log_init();
 	struct WF_OBJ *w;
-//	w = wf_load("../models/lpshead/head.OBJ");
-//	wf_free(w);
+	w = wf_load("../models/lpshead/head.OBJ");
+	wf_free(w);
 	w = wf_load("../models/bunny/bunny.obj");
 	wf_free(w);
 	w = wf_load("../models/sponza/sponza.obj");
@@ -1142,4 +1142,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-*/

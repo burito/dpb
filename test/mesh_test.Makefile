@@ -4,7 +4,7 @@ DESCRIPTION = Wavefront Mesh Loader Test
 BINARY_NAME = meshtest
 CFLAGS = -std=c11 -Ideps -Isrc -Wall -pedantic
 OBJS = mesh.o log.o global.o 3dmaths.o version.o
-OBJS += mesh_test.o
+# OBJS += mesh_test.o
 VPATH = src test
 WIN_LIBS =
 LIN_LIBS = -lm

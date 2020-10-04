@@ -43,11 +43,9 @@ struct WF_TRIANGLE_CORNER
 	int normal;
 };
 
-
 struct WF_TRIANGLE
 {
 	struct WF_TRIANGLE_CORNER corner[3];
-	int3 verticies, texcoords, normals;
 	vec3 normal;
 	int smoothgroup;
 	struct WF_MTL *m;
