@@ -17,8 +17,11 @@ path_test:
 	$(MAKE) -f test/path_test.Makefile
 
 
-test_3dmaths:
+3dmaths_test:
 	$(MAKE) -f test/3dmaths_test.Makefile
+
+mesh_test:
+	$(MAKE) -f test/mesh_test.Makefile
 
 
 .PHONY: clean

@@ -44,8 +44,11 @@ typedef struct int2 {
 	int x, y;
 } int2;
 
-typedef struct int3 {
-	int x, y, z;
+typedef union {
+	struct { int x, y, z; };
+	struct { int2 xy; int iz; };
+	struct { int ix; int2 yz; };
+	int i[3];
 } int3;
 
 typedef struct byte4 {

@@ -1,28 +1,42 @@
 {
-	// Use IntelliSense to learn about possible attributes.
-	// Hover to view descriptions of existing attributes.
-	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch test_3dmaths.exe",
+			"name": "Launch",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/test_3dmaths.exe",
 			"args": [],
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}",
+			"cwd": "${workspaceRoot}",
 			"environment": [],
 			"externalConsole": true,
-			"MIMode": "lldb"
-		},
-		{
-			"name": "Launch gfx_gl",
-			"type": "lldb",
-			"request": "launch",
-			"program": "${workspaceFolder}/gfx_gl.bin",
-			"args": [],
-			"cwd": "${workspaceFolder}",
+
+			"linux": {
+				"program": "${workspaceRoot}/meshtest"
+			},
+
+			"osx": {
+				"program": "${workspaceRoot}/meshtest.bin",
+				"MIMode": "lldb"
+			},
+
+			"windows": {
+				"miDebuggerPath": "c:/msys64/mingw64/bin/gdb.exe",
+				"MIMode": "gdb",
+//				"miDebuggerPath": "C:/Program Files/LLVM/bin/lldb.exe",
+//				"MIMode": "lldb",
+				"program": "${workspaceRoot}/meshtest.exe",
+				"setupCommands": [
+					{
+						"description": "Enable pretty-printing for gdb",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					}
+				]
+			},
+
+			"MIMode": "gdb",
+			"program": ""
 		}
 	]
 }
