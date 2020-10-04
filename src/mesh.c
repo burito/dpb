@@ -676,32 +676,32 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 	int num_triangles =  wf_count_face(w, line);
 	int offset = w->num_triangles - num_triangles;
 
-	char corner_delim[] = " \n\r";
-	char *corner_saveptr = NULL;
-	char *token = NULL;
-	token = strtok_r(line, corner_delim, &corner_saveptr);
-
+	int value;
 	// parse the first triangle
 	for(int i=0; i<3; i++)
 	{
-		token = strtok_r(NULL, corner_delim, &corner_saveptr);
-		int value;
-		char item_delim[] = "/";
-		char *item_saveptr = NULL;
-		char *item = strtok_r(token, item_delim, &item_saveptr);
-		value = atoi(item);
+		// find the next number
+		while( !(*line >= '0' && *line <= '9') ) line++;
+		value = atoi(line);
 		if(value < 0) value = value + w->num_verticies;
 		w->triangles[offset].verticies.i[i] = value;
 
-		item = strtok_r(NULL, item_delim, &item_saveptr);
-		value = atoi(item);
+		// find the next slash
+		while( *line != '/' ) line++;
+		line++;
+		value = atoi(line);
 		if(value < 0) value = value + w->num_texcoords;
 		w->triangles[offset].texcoords.i[i] = value;
 
-		item = strtok_r(NULL, item_delim, &item_saveptr);
-		value = atoi(item);
+		// find the next slash
+		while( *line != '/' ) line++;
+		line++;
+		value = atoi(line);
 		if(value < 0) value = value + w->num_normals;
 		w->triangles[offset].normals.i[i] = value;
+
+		// find the next space
+		while( !(*line == ' ' || *line == '\n' || *line == '\r' || *line == 0) ) line++;
 	}
 
 	// now parse the remaining triangles
@@ -715,24 +715,28 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 		w->triangles[offset].normals.xy = w->triangles[first].normals.xy;
 
 		// now parse the third corner just as before
-		token = strtok_r(NULL, corner_delim, &corner_saveptr);
-		int value;
-		char item_delim[] = "/";
-		char *item_saveptr = NULL;
-		char *item = strtok_r(token, item_delim, &item_saveptr);
-		value = atoi(item);
+		// find the next number
+		while( !(*line >= '0' && *line <= '9') ) line++;
+		value = atoi(line);
 		if(value < 0) value = value + w->num_verticies;
 		w->triangles[offset].verticies.z = value;
 
-		item = strtok_r(NULL, item_delim, &item_saveptr);
-		value = atoi(item);
+		// find the next slash
+		while( *line != '/' ) line++;
+		line++;
+		value = atoi(line);
 		if(value < 0) value = value + w->num_texcoords;
 		w->triangles[offset].texcoords.z = value;
 
-		item = strtok_r(NULL, item_delim, &item_saveptr);
-		value = atoi(item);
+		// find the next slash
+		while( *line != '/' ) line++;
+		line++;
+		value = atoi(line);
 		if(value < 0) value = value + w->num_normals;
 		w->triangles[offset].normals.z = value;
+
+		// find the next space
+		while( !(*line == ' ' || *line == '\n' || *line == '\r' || *line == 0) ) line++;
 	}
 
 	return;
