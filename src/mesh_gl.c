@@ -60,7 +60,7 @@ struct MESH_OPENGL* mesh_load(char *filename)
 
 	glGenBuffers( 1, &w->element_buffer );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, wf->num_faces*12, wf->index_buffer_data, GL_STATIC_DRAW );
+	glBufferData( GL_ELEMENT_ARRAY_BUFFER, wf->num_triangles*12, wf->index_buffer_data, GL_STATIC_DRAW );
 
 	glEnableVertexAttribArray( 0 );
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)0 );
@@ -83,7 +83,7 @@ void mesh_draw(struct MESH_OPENGL *w)
 {
 	if(!w)return;
 	glBindVertexArray( w->vertex_array );
-	glDrawElements( GL_TRIANGLES, w->wf->num_faces*3, GL_UNSIGNED_INT, 0 );
+	glDrawElements( GL_TRIANGLES, w->wf->num_triangles*3, GL_UNSIGNED_INT, 0 );
 	glBindVertexArray( 0 );
 	return;
 }

@@ -597,17 +597,28 @@ int wf_count_face(struct WF_OBJ *w, char *line)
 {
 	// TODO: fix the count, remove strtok
 	w->num_faces++;
+	line++;
 
-	int num_triangles = -3;
+	// get to the first block
+	while( *line == ' ' || *line == '\t' ) line++;
 
-	char delim[] = " \n\r";
-	char *saveptr = NULL;
-	char *token = NULL;
-	token = strtok_r(line, delim, &saveptr);
-	do {
-		token = strtok_r(NULL, delim, &saveptr);
+	// get to the second block
+	while( !(*line == ' ' || *line == '\t') ) line++;
+	while( *line == ' ' || *line == '\t' ) line++;
+
+	// get to the third block
+	while( !(*line == ' ' || *line == '\t') ) line++;
+	while( *line == ' ' || *line == '\t' ) line++;
+
+	int num_triangles = 0;
+
+	while( !(*line == 0 || *line == '\n') )
+	{
 		num_triangles++;
-	} while( token != NULL);
+		while( !(*line == ' ' || *line == '\t' || *line == 0 || *line == '\n') ) line++;
+		while( *line == ' ' || *line == '\t' ) line++;
+
+	}
 
 	w->num_triangles += num_triangles;
 //	w->smoothgroups[w->current_smoothgroup] += num_triangles;
