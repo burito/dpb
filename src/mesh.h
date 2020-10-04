@@ -56,7 +56,7 @@ struct packed_verts {
 	vec3 p;
 	vec3 n;
 	vec2 uv;
-};
+} __attribute__((packed));
 
 struct smoothgroup_table {
 	int id;
@@ -65,9 +65,9 @@ struct smoothgroup_table {
 
 struct WF_OBJ
 {
-	struct WF_MTL *m;
+//	struct WF_MTL *m;
 	struct WF_TRIANGLE *triangles;
-	int3 *vf;
+
 	int num_materials;
 	int num_groups;
 	int num_verticies;
@@ -86,23 +86,13 @@ struct WF_OBJ
 	int num_smoothgroups;
 	struct smoothgroup_table *smoothgroup_table;
 
-	int  ng, ns, nm;
-	vec3 *v, *vt, *vn, *fn;
-	vec2 *uv;
-	struct packed_verts *pv;
+	struct packed_verts *vertex_buffer_data;
+	int3 *index_buffer_data;
+
 	char *filename;
-	char **groups;
-	int *sgroups;
-	uint32_t va, ab, eb;
-	void (*draw)(struct WF_OBJ*);
 };
 
 
-struct WF_ARRAY
-{
-	vec3 v, n;
-	vec2 t;
-};
 
 int wf_count_face(struct WF_OBJ *w, char *line);
 

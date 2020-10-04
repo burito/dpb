@@ -258,157 +258,6 @@ static WF_MTL* find_material(WF_MTL *m, char *name)
 }
 
 
-
-
-
-void wf_interleave(WF_OBJ *w)
-{
-	if(w == NULL)return;
-	log_debug("At interleave we have %d/%d/%d", w->nv, w->nn, w->nt);
-	if(w->nv == 0)return;
-	struct packed_verts *pv = malloc(w->nv * sizeof(struct packed_verts));
-	if(pv == NULL)
-	{
-		log_error("malloc(w->nv*sizeof(packed_verts))");
-		return;
-	}
-	memset(pv, 0, w->nv * sizeof(struct packed_verts));
-	// interleave the verts, normals and texture vec2s for the VBO
-	for(int i=0; i<w->nv; i++)
-	{
-		pv[i].p = w->v[i];
-		if(w->nv == w->nn)
-		{
-			pv[i].n = w->vn[i];
-		}
-		if(w->uv)
-		{
-			pv[i].uv = w->uv[i];
-		}
-	}
-	log_debug("Interleaved ok!");
-	w->pv = pv;
-
-	// now store the faces, per material for fast rendering
-	if(w->nf <= 0)
-	{
-		log_warning("no faces in model");
-		return;
-	}
-	int3 *f = malloc(w->nf*sizeof(int3));
-	if(f == NULL)
-	{
-		log_error("malloc(w->nf*sizeof(int3))");
-		return;
-	}
-	WF_MTL *m = w->m;
-	int o=0;
-	for(;m;m = m->next)
-	{
-		m->nf = 0;
-		for(int i=0; i<w->nf; i++)
-		if(w->f[i].m == m)
-		{
-			f[o++] = w->f[i].f;
-			m->nf++;
-		}
-	}
-
-	for(;o < w->nf; o++)
-	for(int i=0; i<w->nf; i++)
-	if(w->f[i].m == 0)
-		f[o++] = w->f[i].f;
-	w->vf = f;
-	log_debug("Interleaved faces ok!");
-//	free(w->v); w->v = 0;
-//	free(w->vn); w->vn = 0;
-}
-
-
-
-
-static void wf_vertex_normals(WF_OBJ *w)
-{
-	if(!w)return;
-	if(!w->nf)return;
-	if(!w->vn)return;
-
-	typedef struct LLIST
-	{
-		int face;
-		struct LLIST* next;
-	} LLIST;
-
-	LLIST *vert = malloc(sizeof(LLIST)*w->nv);
-	memset(vert, 0, sizeof(LLIST)*w->nv);
-
-	LLIST *tmp;
-	int index;
-
-	// tell each vert about it's faces
-	for(int i=0; i<w->nf; i++)
-//	if(w->f[i].s == smoothgroup)
-	{
-		index = w->f[i].f.x;
-		tmp = malloc(sizeof(LLIST));
-		tmp->face = i;
-		tmp->next = vert[index].next;
-		vert[index].next = tmp;
-
-		index = w->f[i].f.y;
-		tmp = malloc(sizeof(LLIST));
-		tmp->face = i;
-		tmp->next = vert[index].next;
-		vert[index].next = tmp;
-
-		index = w->f[i].f.z;
-		tmp = malloc(sizeof(LLIST));
-		tmp->face = i;
-		tmp->next = vert[index].next;
-		vert[index].next = tmp;
-	}
-
-	// now average the normals and store in the output
-	for(int i=0; i<w->nv; i++)
-	{
-		tmp = vert[i].next;
-		if(!tmp)continue;
-		vec3 t = {.f={0,0,0}};
-		while(tmp)
-		{
-			t = add(t, w->f[tmp->face].normal);
-			LLIST *last = tmp;
-			tmp = tmp->next;
-			free(last);
-		}
-
-		if((t.x*t.x + t.y*t.y + t.z*t.z )>0.1)
-		{
-			w->vn[i] = vec3_norm(t);
-		}
-
-	}
-	free(vert);
-}
-
-
-
-static void wf_normals(WF_OBJ *w)
-{
-	if(!w)return;
-	if(w->nv == w->nn)return;
-
-	if(w->vn)free(w->vn);
-	w->vn = malloc(sizeof(vec3)*w->nv);
-	memset(w->vn, 0, sizeof(vec3)*w->nv);
-	w->nn = w->nv;
-
-	wf_face_normals(w);
-	wf_vertex_normals(w);
-
-
-}
-
 static void wf_texvec2s(WF_OBJ *w)
 {
 	if(!w)return;
@@ -432,11 +281,113 @@ static void wf_texvec2s(WF_OBJ *w)
 	log_debug("UV's copied, wanted %d verts", uvcopy);
 }
 
-#ifdef NO
-
 #endif
 
-#endif
+/*
+ * Interleave the Verticies, Normals and Texcoords into a buffer appropriate
+ * for rendering on a GPU.
+ */
+void wf_interleave(struct WF_OBJ *w)
+{
+	if(w == NULL)return;
+	log_debug("At interleave we have %d/%d/%d", w->num_verticies, w->num_normals, w->num_texcoords);
+	if(w->num_verticies <= 0)return;
+	if(w->num_triangles <= 0) return;
+
+	w->vertex_buffer_data = malloc( w->num_verticies * sizeof(struct packed_verts) );
+	if(w->vertex_buffer_data == NULL)
+	{
+		log_error("malloc(vertex_buffer_data) = %s", strerror(errno));
+		goto WF_INTERLEAVE_MALLOC_VERTEXBUFFER;
+	}
+
+	memset(w->vertex_buffer_data, 0, w->num_verticies * sizeof(struct packed_verts) );
+	// interleave the verts, normals and texture vec2s for the VBO
+	for(int i=0; i<w->num_verticies; i++)
+	{
+		w->vertex_buffer_data[i].p = w->verticies[i];
+		if(w->num_verticies == w->num_normals)
+		{
+			w->vertex_buffer_data[i].n = w->normals[i];
+		}
+		if(w->texcoords)
+		{
+			w->vertex_buffer_data[i].uv = w->texcoords[i];
+		}
+	}
+	log_debug("Interleaved ok!");
+
+	w->index_buffer_data = malloc( w->num_triangles*sizeof(int3) );
+	if(w->index_buffer_data == NULL)
+	{
+		log_error("malloc(index_buffer_data) = %s", strerror(errno));
+		goto WF_INTERLEAVE_MALLOC_INDEXBUFFER;
+	}
+
+	// copy the faces to the index buffer
+	// TODO: batch these by material
+	for(int i=0; i<w->num_triangles; i++)
+	for(int j=0; j<3; j++)
+	{
+		w->index_buffer_data[i].i[j] = w->triangles[i].corner[j].vertex;
+	}
+
+	log_debug("Interleaved faces ok!");
+
+	return;
+
+	free(w->index_buffer_data);
+WF_INTERLEAVE_MALLOC_INDEXBUFFER:
+	free(w->vertex_buffer_data);
+	w->vertex_buffer_data = NULL;
+WF_INTERLEAVE_MALLOC_VERTEXBUFFER:
+	return;
+
+
+}
+
+
+
+/*
+ * Generate per-vertex normals, from existing face normals.
+ */
+void wf_vertex_normals(struct WF_OBJ *w)
+{
+	if(!w)return;
+
+	// we can throw away the existing normals
+	if(w->normals)
+	{
+		free(w->normals);
+		w->normals = NULL;
+	}
+	w->num_normals = w->num_verticies;
+
+	w->normals = malloc( sizeof(vec3)*w->num_normals );
+	if(w->normals == NULL)
+	{
+		log_fatal("malloc(normals) = %d", strerror(errno));
+		return;
+	}
+	memset( w->normals, 0, sizeof(vec3)*w->num_normals );
+
+	// add the normal of each face to the vertex normal
+	for(int i=0; i<w->num_triangles; i++)
+	for(int j=0; j<3; j++)
+	{
+		struct WF_TRIANGLE_CORNER *corner = &w->triangles[i].corner[j];
+
+		w->normals[corner->vertex] = add(w->normals[corner->vertex], w->triangles[i].normal);
+	}
+
+	// normalise the result
+	for(int i=0; i<w->num_verticies; i++)
+	{
+		// if it's for some reason 0, don't do it
+		if( vec3_mag( w->normals[i] ) > 0.0001)
+			w->normals[i] = vec3_norm(w->normals[i]);
+	}
+}
 
 /*
  * Generate per face normals.
@@ -466,7 +417,7 @@ void wf_normals(struct WF_OBJ *w)
 {
 	if(!w)return;
 
-	w->num_smoothgroups = 1; // there's always 1, the 0th group, aka "off"
+	w->num_smoothgroups = 0; // there's always 1, the 0th group, aka "off"
 	w->smoothgroup_table = malloc( sizeof(struct smoothgroup_table) * MAX_SMOOTHGROUPS);
 	if(w->smoothgroup_table == NULL)
 	{
@@ -478,13 +429,8 @@ void wf_normals(struct WF_OBJ *w)
 	for(int i=0; i< w->num_triangles; i++)
 	{
 		struct WF_TRIANGLE *triangle = &w->triangles[i];
-		if(triangle->smoothgroup == 0)
-		{ // simple case
-			w->smoothgroup_table[0].count++;
-			continue;
-		}
 		// find an existing entry that matches
-		for(int j=1; j<w->num_smoothgroups; j++)
+		for(int j=0; j<w->num_smoothgroups; j++)
 		{
 			if( triangle->smoothgroup == w->smoothgroup_table[j].id )
 			{// it matches an existing entry
@@ -511,6 +457,14 @@ void wf_normals(struct WF_OBJ *w)
 		// and onto the next
 WF_NORMALS_SMOOTHGROUP_CONTINUE:
 		continue;
+	}
+
+	// if there are no smoothgroups, or only one used smoothgroup, then it's easy!
+	if( w->num_smoothgroups == 1 && w->smoothgroup_table[0].id != 0 )
+	{
+		wf_face_normals(w);
+		wf_vertex_normals(w);
+		return;
 	}
 
 	// Print out the smoothgroups for debugging
@@ -641,6 +595,7 @@ void wf_count_texcoord(struct WF_OBJ *w, char *line)
 
 int wf_count_face(struct WF_OBJ *w, char *line)
 {
+	// TODO: fix the count, remove strtok
 	w->num_faces++;
 
 	int num_triangles = -3;
@@ -753,6 +708,7 @@ void wf_parse_face_corner(struct WF_OBJ *w, struct WF_TRIANGLE_CORNER *corner, c
 {
 	int value = atoi(line);
 	if(value < 0) value = value + w->num_verticies;
+	else value--;
 	corner->vertex = value;
 
 	// find the next non-number (or hyphen)
@@ -765,6 +721,7 @@ void wf_parse_face_corner(struct WF_OBJ *w, struct WF_TRIANGLE_CORNER *corner, c
 	line++;
 	value = atoi(line);
 	if(value < 0) value = value + w->num_texcoords;
+	else value--;
 	corner->texcoord = value;
 
 	// if we just read a number, move past it
@@ -777,6 +734,7 @@ void wf_parse_face_corner(struct WF_OBJ *w, struct WF_TRIANGLE_CORNER *corner, c
 	line++;
 	value = atoi(line);
 	if(value < 0) value = value + w->num_normals;
+	else value--;
 	corner->normal = value;
 }
 
@@ -818,7 +776,7 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 
 		// the first two corners go in every triangle
 		w->triangles[offset].corner[0] = w->triangles[first].corner[0];
-		w->triangles[offset].corner[1] = w->triangles[first].corner[1];
+		w->triangles[offset].corner[1] = w->triangles[first].corner[2];
 
 		// find the next not space
 		while( *line == ' ' || *line == '\t' || *line == 0 ) line++;
@@ -925,14 +883,28 @@ int wf_alloc_first_buffers(struct WF_OBJ *w)
 
 	return 0;
 
+
+	if(w->triangles)
+	{
+		free(w->triangles);
+		w->triangles = NULL;
+	}
 WF_ALLOC_TRIANGLES:
-	if(w->num_triangles) free(w->triangles);
+	if(w->normals)
+	{
+		free(w->normals);
+		w->normals = NULL;
+	}
 WF_ALLOC_NORMALS:
-	if(w->num_normals) free(w->normals);
+	if(w->texcoords)
+	{
+		free(w->texcoords);
+		w->texcoords = NULL;
+	}
 WF_ALLOC_TEXCOORDS:
-	if(w->num_texcoords) free(w->verticies);
-WF_ALLOC_VERTICIES:
 	free(w->verticies);
+	w->verticies = NULL;
+WF_ALLOC_VERTICIES:
 	return 1;
 }
 
@@ -1014,6 +986,7 @@ struct WF_OBJ* wf_parse(char *filename)
 	w->num_faces = 0;
 	w->num_triangles = 0;
 	w->num_groups = 0;
+	w->current_smoothgroup = MAX_SMOOTHGROUPS;
 
 	fseek(fptr, 0, SEEK_SET);
 	while(fgets(line, 1024, fptr))
@@ -1042,8 +1015,16 @@ struct WF_OBJ* wf_parse(char *filename)
 
 	free(w->smoothgroups);
 WF_LOAD_ALLOC_SMOOTHGROUPS:
-	if(w->normals) free(w->normals);
-	if(w->texcoords) free(w->texcoords);
+	if(w->normals)
+	{
+		free(w->normals);
+		w->normals = NULL;
+	}
+	if(w->texcoords)
+	{
+		free(w->texcoords);
+		w->texcoords = NULL;
+	}
 	free(w->verticies);
 WF_LOAD_ALLOC:
 	free(w->filename);
@@ -1070,13 +1051,14 @@ struct WF_OBJ* wf_load(char * filename)
 		return NULL;
 	}
 
-//	wf_bound(w);
+	wf_bound(w);
 	wf_normals(w);
+	wf_interleave(w);
 /*
 	if(w->nv != w->nn)wf_normals(w);
 	wf_texvec2s(w);
 
-	wf_interleave(w);
+
 //	wf_gpu_load(w);
 //	w->draw = wf_draw;
 
@@ -1089,25 +1071,10 @@ struct WF_OBJ* wf_load(char * filename)
 void wf_free(struct WF_OBJ *w)
 {
 	if(!w)return;
-/*
-	if(w->v)free(w->v);
-	if(w->vt)free(w->vt);
-	if(w->vn)free(w->vn);
-	if(w->pv)free(w->pv);
-	if(w->f)free(w->f);
-	if(w->fn)free(w->fn);
-#ifdef NO
-	if(w->ab)glDeleteBuffers(1, &w->ab);
-	if(w->eb)glDeleteBuffers(1, &w->eb);
-#endif
-	WF_MTL *mt, *m = w->m;
-	while(m)
-	{
-		mt = m->next;
-		mtl_free(m);
-		m = mt;
-	}
-*/
+
+	if(w->index_buffer_data) free(w->index_buffer_data);
+	if(w->vertex_buffer_data) free(w->vertex_buffer_data);
+
 	if(w->smoothgroups) free(w->smoothgroups);
 	if(w->verticies) free(w->verticies);
 	if(w->texcoords) free(w->texcoords);
@@ -1117,7 +1084,7 @@ void wf_free(struct WF_OBJ *w)
 	free(w);
 }
 
-
+/*
 int main(int argc, char *argv[])
 {
 	log_init();
@@ -1138,7 +1105,6 @@ int main(int argc, char *argv[])
 	wf_free(w);
 	w = wf_load("../models/powerplant/powerplant.obj");
 	wf_free(w);
-
-
 	return 0;
 }
+*/
