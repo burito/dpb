@@ -1099,7 +1099,7 @@ void wf_free(struct WF_OBJ *w)
 	free(w);
 }
 
-
+/*
 int main(int argc, char *argv[])
 {
 	log_init();
@@ -1122,3 +1122,4 @@ int main(int argc, char *argv[])
 	wf_free(w);
 	return 0;
 }
+*/
