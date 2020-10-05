@@ -312,7 +312,7 @@ void wf_interleave(struct WF_OBJ *w)
 		}
 		if(w->texcoords)
 		{
-			w->vertex_buffer_data[i].uv = w->texcoords[i];
+//			w->vertex_buffer_data[i].uv = w->texcoords[i];
 		}
 	}
 	log_debug("Interleaved ok!");
@@ -459,13 +459,17 @@ WF_NORMALS_SMOOTHGROUP_CONTINUE:
 		continue;
 	}
 
+	log_debug("here");
 	// if there are no smoothgroups, or only one used smoothgroup, then it's easy!
-	if( w->num_smoothgroups == 1 && w->smoothgroup_table[0].id != 0 )
+//	if( w->num_smoothgroups == 1 && w->smoothgroup_table[0].id != 0 )
 	{
 		wf_face_normals(w);
+			log_debug("here");
+
 		wf_vertex_normals(w);
 		return;
 	}
+	log_debug("here");
 
 	// Print out the smoothgroups for debugging
 	for(int i=0; i<w->num_smoothgroups; i++)
@@ -1095,7 +1099,7 @@ void wf_free(struct WF_OBJ *w)
 	free(w);
 }
 
-/*
+
 int main(int argc, char *argv[])
 {
 	log_init();
@@ -1118,4 +1122,3 @@ int main(int argc, char *argv[])
 	wf_free(w);
 	return 0;
 }
-*/
