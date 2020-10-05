@@ -21,11 +21,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#define _XOPEN_SOURCE 500	// for strtok_r and strdup on linux
-
-#ifdef _WIN32
-#define strtok_r strtok_s
-#endif
+#define _XOPEN_SOURCE 500	// for strdup on linux
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -599,7 +595,6 @@ void wf_count_texcoord(struct WF_OBJ *w, char *line)
 
 int wf_count_face(struct WF_OBJ *w, char *line)
 {
-	// TODO: fix the count, remove strtok
 	w->num_faces++;
 	line++;
 
