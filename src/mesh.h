@@ -27,13 +27,12 @@ freely, subject to the following restrictions:
 
 struct WF_MTL
 {
-	float Ns, Ni;		// specular coefficient, ?
-	vec3 Ka, Kd, Ks, Ke;	// ambient, diffuse, specular, emit
-	float4 colour;		// colour + alpha
+//	float Ns, Ni;		// specular coefficient, ?
+//	vec3 Ka, Kd, Ks, Ke;	// ambient, diffuse, specular, emit
+//	float4 colour;		// colour + alpha
 //	IMG *map_Ka, *map_Kd, *map_d, *map_bump;	// amb, spec, alpha, bump
 	char *name;
-	struct WF_MTL *next;
-	int nf;
+	char *filename;
 };
 
 struct WF_TRIANGLE_CORNER
@@ -61,11 +60,12 @@ struct packed_verts {
 struct smoothgroup_table {
 	int id;
 	int count;
+	struct WF_TRIANGLE **triangles;
 };
 
 struct WF_OBJ
 {
-//	struct WF_MTL *m;
+	struct WF_MTL *materials;
 	struct WF_TRIANGLE *triangles;
 
 	int num_materials;
@@ -82,6 +82,8 @@ struct WF_OBJ
 
 	int current_smoothgroup;
 	int *smoothgroups;
+
+	int current_material;
 
 	int num_smoothgroups;
 	struct smoothgroup_table *smoothgroup_table;

@@ -38,6 +38,7 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <libgen.h> // for dirname()
 
 #include "3dmaths.h"
 #include "mesh.h"
@@ -112,7 +113,33 @@ void mtl_end(void)
 #endif
 }
 
-void mtl_free(WF_MTL *m)
+
+static void wf_texvec2s(WF_OBJ *w)
+{
+	if(!w)return;
+	if(!w->nt)return;
+	const int size = w->nv * sizeof(vec2);
+	w->uv = malloc(size);
+	memset(w->uv, 0, size);
+
+	int uvcopy = 0;
+
+	for(int i=0; i<w->nf; i++)
+	{
+		if(mag(w->uv[w->f[i].f.x]) > 0.1)
+		{
+			uvcopy++;
+		}
+		w->uv[w->f[i].f.x] = w->vt[w->f[i].t.x].xy;
+		w->uv[w->f[i].f.y] = w->vt[w->f[i].t.y].xy;
+		w->uv[w->f[i].f.z] = w->vt[w->f[i].t.z].xy;
+	}
+	log_debug("UV's copied, wanted %d verts", uvcopy);
+}
+
+#endif
+/*
+void mtl_free(struct WF_MTL *m)
 {
 	if(!m)return;
 	if(m->name)free(m->name);
@@ -124,11 +151,17 @@ void mtl_free(WF_MTL *m)
 
 }
 
-static WF_MTL* mtl_newmtl(char *hostpath, FILE *fptr, char *name)
+
+struct WF_MTL* mtl_newmtl(char *hostpath, FILE *fptr, char *name)
 {
-	WF_MTL *m = malloc(sizeof(WF_MTL));
-	if(!m)return 0;
-	memset(m, 0, sizeof(WF_MTL));
+	struct WF_MTL *m = malloc(sizeof(WF_MTL));
+	if(m == NULL)
+	{
+		log_fatal("malloc(WF_MTL) = %s", strerror(errno));
+		goto MTL_NEWMTL_MALLOC;
+	}
+	memset(m, 0, sizeof(struct WF_MTL));
+
 	m->colour.x = m->colour.y = m->colour.z = m->colour.w = 1.0f;
 	m->Ns = 50.0f;							// specular coefficient
 	m->Ka.x = m->Ka.y = m->Ka.z = 0.2f;		// ambient
@@ -199,47 +232,18 @@ static WF_MTL* mtl_newmtl(char *hostpath, FILE *fptr, char *name)
 		last = ftell(fptr);
 	}
 	return m;
+
+	free(m);
+MTL_NEWMTL_MALLOC:
+	return NULL;
 }
-
-
-static void mtl_load(WF_OBJ *w, char *filename)
-{
-	if(!w)return;
-	if(!filename)return;
-	if(!w->filename)return;
-//	char *filepath = repath(w->filename, filename);
-	log_info("Loading Wavefront MTL(\"%s\");", filename);
-	return;
-#ifdef NO
-	FILE *fptr = fopen(filepath, "r");
-	if(!fptr)
-	{
-		log_error("fopen(\"%s\") %s", filepath, strerror(errno));
-		free(filepath);
-		return;
-	}
-
-	char buf[BUF_LEN];
-	while(fgets(buf, BUF_LEN, fptr))
-	if(strstr(buf, "newmtl"))
-	{
-		tailchomp(buf);
-		WF_MTL *m = mtl_newmtl(filepath, fptr, buf+7);
-		if(m)
-		{
-			w->nm++;
-			m->next = w->m;
-			w->m = m;
-		}
-	}
-	free(filepath);
-	fclose(fptr);
-#endif
-}
+*/
 
 
 
-static WF_MTL* find_material(WF_MTL *m, char *name)
+/*
+
+struct WF_MTL* find_material(struct WF_MTL *m, char *name)
 {
 	if(!m)return 0;
 	if(!name)return 0;
@@ -253,31 +257,7 @@ static WF_MTL* find_material(WF_MTL *m, char *name)
 	return m;
 }
 
-
-static void wf_texvec2s(WF_OBJ *w)
-{
-	if(!w)return;
-	if(!w->nt)return;
-	const int size = w->nv * sizeof(vec2);
-	w->uv = malloc(size);
-	memset(w->uv, 0, size);
-
-	int uvcopy = 0;
-
-	for(int i=0; i<w->nf; i++)
-	{
-		if(mag(w->uv[w->f[i].f.x]) > 0.1)
-		{
-			uvcopy++;
-		}
-		w->uv[w->f[i].f.x] = w->vt[w->f[i].t.x].xy;
-		w->uv[w->f[i].f.y] = w->vt[w->f[i].t.y].xy;
-		w->uv[w->f[i].f.z] = w->vt[w->f[i].t.z].xy;
-	}
-	log_debug("UV's copied, wanted %d verts", uvcopy);
-}
-
-#endif
+*/
 
 /*
  * Interleave the Verticies, Normals and Texcoords into a buffer appropriate
@@ -293,11 +273,11 @@ void wf_interleave(struct WF_OBJ *w)
 	w->vertex_buffer_data = malloc( w->num_verticies * sizeof(struct packed_verts) );
 	if(w->vertex_buffer_data == NULL)
 	{
-		log_error("malloc(vertex_buffer_data) = %s", strerror(errno));
+		log_fatal("malloc(vertex_buffer_data) = %s", strerror(errno));
 		goto WF_INTERLEAVE_MALLOC_VERTEXBUFFER;
 	}
-
 	memset(w->vertex_buffer_data, 0, w->num_verticies * sizeof(struct packed_verts) );
+
 	// interleave the verts, normals and texture vec2s for the VBO
 	for(int i=0; i<w->num_verticies; i++)
 	{
@@ -316,7 +296,7 @@ void wf_interleave(struct WF_OBJ *w)
 	w->index_buffer_data = malloc( w->num_triangles*sizeof(int3) );
 	if(w->index_buffer_data == NULL)
 	{
-		log_error("malloc(index_buffer_data) = %s", strerror(errno));
+		log_fatal("malloc(index_buffer_data) = %s", strerror(errno));
 		goto WF_INTERLEAVE_MALLOC_INDEXBUFFER;
 	}
 
@@ -455,17 +435,50 @@ WF_NORMALS_SMOOTHGROUP_CONTINUE:
 		continue;
 	}
 
-	log_debug("here");
-	// if there are no smoothgroups, or only one used smoothgroup, then it's easy!
-//	if( w->num_smoothgroups == 1 && w->smoothgroup_table[0].id != 0 )
-	{
-		wf_face_normals(w);
-			log_debug("here");
+	// we're doing face normals regardless
+	wf_face_normals(w);
 
+	// if there are no smoothgroups, or only one used smoothgroup, then it's easy!
+	if( w->num_smoothgroups == 1 && w->smoothgroup_table[0].id != 0 )
+	{
 		wf_vertex_normals(w);
+		wf_interleave(w);
 		return;
 	}
-	log_debug("here");
+
+	// we know it's the default smoothgroup (off)
+	if( w->num_smoothgroups == 1 )
+	{
+		w->vertex_buffer_data = malloc(sizeof(struct packed_verts) * w->num_triangles * 3);
+		if(w->smoothgroup_table == NULL)
+		{
+			log_fatal("malloc(vertex_buffer_data) = %d", strerror(errno));
+			return; // TODO: return error
+		}
+		memset(w->vertex_buffer_data, 0, sizeof(struct packed_verts) * w->num_triangles * 3);
+
+		w->index_buffer_data = malloc( sizeof(int3) * w->num_triangles );
+		if(w->smoothgroup_table == NULL)
+		{
+			log_fatal("malloc(index_buffer_data) = %d", strerror(errno));
+			return; // TODO: return error
+		}
+		memset(w->index_buffer_data, 0, sizeof(int3) * w->num_triangles);
+
+		for(int i=0; i<w->num_triangles; i++)
+		for(int j=0; j<3; j++)
+		{
+			w->index_buffer_data[i].i[j] = i*3 + j;
+
+			w->vertex_buffer_data[i*3+j].p = w->verticies[w->triangles[i].corner[j].vertex];
+			if( w->texcoords > 0 )
+				w->vertex_buffer_data[i*3+j].uv = w->texcoords[w->triangles[i].corner[j].texcoord];
+			w->vertex_buffer_data[i*3+j].n = w->triangles[i].normal;
+		}
+
+		w->num_verticies = w->num_triangles * 3;
+		return;
+	}
 
 	// Print out the smoothgroups for debugging
 	for(int i=0; i<w->num_smoothgroups; i++)
@@ -473,6 +486,30 @@ WF_NORMALS_SMOOTHGROUP_CONTINUE:
 		struct smoothgroup_table *entry = &w->smoothgroup_table[i];
 		log_info("Smoothgroup[%d] = {%d, %d}", i, entry->id, entry->count);
 	}
+
+
+	// allocate memory for the smoothgroup triangle lists
+	for(int i=0; i<w->num_smoothgroups; i++)
+	{
+		struct smoothgroup_table *entry = &w->smoothgroup_table[i];
+		entry->triangles = malloc( entry->count * sizeof(struct WF_TRIANGLE*) );
+		memset( entry->triangles, 0, entry->count * sizeof(struct WF_TRIANGLE*) );
+		entry->count = 0;
+	}
+
+	// sort the triangles into the smoothgroup lists
+	for(int i=0; i< w->num_triangles; i++)
+	{ // we relabelled all the triangles smoothgroups, so we don't need checking here
+		struct WF_TRIANGLE *triangle = &w->triangles[i];
+		struct smoothgroup_table *table = &w->smoothgroup_table[triangle->smoothgroup];
+		table->triangles[ table->count ] = triangle;
+		table->count++;
+	}
+
+	//int *vert_sg = malloc( w->num_verticies * w->num_smoothgroups
+
+	// every triangle that is not in a smoothgroup, gets its own verticies
+
 
 	// find out how many triangles each vertex is in
 	int *vertex_face_count = malloc(sizeof(int) * w->num_verticies);
@@ -653,13 +690,147 @@ void wf_count_smoothgroup(struct WF_OBJ *w, char *line)
 
 void wf_count_material(struct WF_OBJ *w, char *line)
 {
-	w->num_materials++;
+//	w->num_materials++;
 	return;
 }
 
 /* all of the "parse" functions call their respective "count" function
  * to eliminate counting errors, or at least ensure they're consistent
  */
+
+/*
+ * Read the mtl library file.
+ */
+void wf_parse_mtllib(struct WF_OBJ *w, char *line)
+{
+	// while it's not whitespace
+	while( !(*line == ' ' || *line == '\t') ) line++;
+	// while it is whitespace
+	while( (*line == ' ' || *line == '\t') ) line++;
+
+	{
+		char *tmpline = line;
+		while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) ) tmpline++;
+		*tmpline = 0;
+	}
+	// dirname() may modify it's argument, so make a copy
+	char *tmp = strdup(w->filename);
+	char *filedir = dirname(tmp);
+	char filepath[1024];
+	snprintf(filepath, 1024, "%s/%s", filedir, line);
+
+	log_info("Loading Wavefront MTL(\"%s\");", filepath);
+
+	FILE *fptr = fopen(filepath, "r");
+	if(!fptr)
+	{
+		log_error("fopen(\"%s\") = %s", filepath, strerror(errno));
+		goto WF_PARSE_MTLLIB_FOPEN;
+	}
+
+	// count the materials
+	w->num_materials = 0;
+	char linestr[1024];
+	while(fgets(line, 1024, fptr))
+	{
+		while( *line == ' ' || *line == '\t' ) line++;
+		switch(line[0]) {
+		case 'n':
+			if(strstr(line, "newmtl"))
+				w->num_materials++;
+			break;
+		}
+	}
+
+	log_info("Found %d materials.", w->num_materials);
+	w->materials = malloc( sizeof(struct WF_MTL) * w->num_materials );
+	if(w->materials == NULL)
+	{
+		log_fatal("malloc(materials) = %s", strerror(errno));
+		goto WF_PARSE_MTLLIB_MALLOC;
+	}
+	w->num_materials = 0;
+
+	// now that we know how many, and have allocated, parse them
+	fseek(fptr, SEEK_SET, 0);
+	while(fgets(line, 1024, fptr))
+	{
+		while( *line == ' ' || *line == '\t' ) line++;
+		switch(line[0]) {
+		case 'n':
+			if(strstr(line, "newmtl"))
+			{
+				// while it is not whitespace
+				while( !(*line == ' ' || *line == '\t') ) line++;
+				// continue until the whitespace ends
+				while( *line == ' ' || *line == '\t' ) line++;
+				// line now equals the start of the name
+				char *tmpline = line;
+				while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) ) tmpline++;
+				*tmpline = 0;
+				// the name is now null-terminated, copy it
+				w->materials[w->num_materials].name = strdup(line);
+				w->current_material = w->num_materials;
+				w->num_materials++;
+			}
+			break;
+		case 'm':
+			if(strstr(line, "map_"))
+			{ // this is a texture map of some kind
+				line += 5;
+				switch(line[0]) {
+				case 'a':	// map_Ka - ambient
+				case 's':	// map_Ks - specular
+				case 'u':	// map_bump - bump map
+				case ' ':	// map_d - stencil map
+				default:
+					break; // we don't care yet
+				case 'd':	// map_Kd - diffuse
+					// while it is not whitespace
+					while( !(*line == ' ' || *line == '\t') ) line++;
+					// continue until the whitespace ends
+					while( *line == ' ' || *line == '\t' ) line++;
+					// line now equals the start of the name
+					char *tmpline = line;
+					while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) ) tmpline++;
+					*tmpline = 0;
+					// the name is now null-terminated, copy it
+					snprintf(filepath, 1024, "%s/%s", filedir, line);
+					w->materials[w->current_material].filename = strdup(filepath);
+					break;
+				}
+			}
+		}
+	}
+
+	for(int i=0; i<w->num_materials; i++)
+	{
+		log_debug("Material[%d] = (%s, %s)", i, w->materials[i].name, w->materials[i].filename);
+	}
+
+	goto WF_PARSE_MTLLIB_SUCCESS;
+
+WF_PARSE_MTLLIB_MALLOC:
+	w->num_materials = 0;
+WF_PARSE_MTLLIB_SUCCESS:
+	fclose(fptr);
+WF_PARSE_MTLLIB_FOPEN:
+	free(tmp);
+	return;
+}
+
+/*
+ * Set the currently active material.
+ */
+void wf_parse_usemtl(struct WF_OBJ *w, char *line)
+{
+	// while it's not whitespace
+	while( !(*line == ' ' || *line == '\t') ) line++;
+	// while it is whitespace
+	while( (*line == ' ' || *line == '\t') ) line++;
+
+}
+
 
 /*
  * Parse a vertex of the form "v 1.0 2.0 3.0"
@@ -828,7 +999,7 @@ void wf_parse_smoothgroup(struct WF_OBJ *w, char *line)
  */
 void wf_parse_material(struct WF_OBJ *w, char *line)
 {
-	wf_count_material(w, line);
+//	wf_count_material(w, line);
 	return;
 }
 
@@ -932,7 +1103,7 @@ struct WF_OBJ* wf_parse(char *filename)
 	struct WF_OBJ *w = malloc(sizeof(struct WF_OBJ));
 	if(w == NULL)
 	{
-		log_warning("malloc() = %s", strerror(errno));
+		log_fatal("malloc() = %s", strerror(errno));
 		goto WF_LOAD_MALLOC_STRUCT;
 	}
 	memset(w, 0, sizeof(struct WF_OBJ));
@@ -958,8 +1129,8 @@ struct WF_OBJ* wf_parse(char *filename)
 	while(fgets(line, 1024, fptr))
 	switch(line[0]) {
 	case 'm':
-		if(strstr(line, "mtllib"))
-			wf_count_material(w, line);
+//		if(strstr(line, "mtllib"))
+//			wf_count_material(w, line);
 //			log_info("mtl");
 		break;
 	case 'v':	// vertex data
@@ -996,14 +1167,20 @@ struct WF_OBJ* wf_parse(char *filename)
 	w->num_faces = 0;
 	w->num_triangles = 0;
 	w->num_groups = 0;
-	w->current_smoothgroup = MAX_SMOOTHGROUPS;
+	w->current_smoothgroup = 0;
+	w->current_material = 0;
 
 	fseek(fptr, 0, SEEK_SET);
 	while(fgets(line, 1024, fptr))
 	switch(line[0]) {
 	case 'm':
 		if(strstr(line, "mtllib"))
-			wf_parse_material(w, line);
+			wf_parse_mtllib(w, line);
+//			log_info("mtl");
+		break;
+	case 'u':
+		if(strstr(line, "usemtl"))
+			wf_parse_usemtl(w, line);
 //			log_info("mtl");
 		break;
 	case 'v':	// vertex data
@@ -1063,7 +1240,6 @@ struct WF_OBJ* wf_load(char * filename)
 
 	wf_bound(w);
 	wf_normals(w);
-	wf_interleave(w);
 /*
 	if(w->nv != w->nn)wf_normals(w);
 	wf_texvec2s(w);
