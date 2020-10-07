@@ -29,11 +29,31 @@ freely, subject to the following restrictions:
 
 #include "mesh.h"
 
+struct IMAGE_OPENGL
+{
+	int2 size;
+	int bpp;
+	int channels;
+	unsigned char *buffer;
+	GLuint id;
+	char *name;
+};
+
+
+
+struct MATERIAL_OPENGL
+{
+	char *filename;
+	struct IMAGE_OPENGL *image;
+};
+
 struct MESH_OPENGL
 {
 	GLuint vertex_array;
 	GLuint array_buffer;
 	GLuint element_buffer;
+	struct MATERIAL_OPENGL *materials;
+	int num_materials;
 	struct WF_OBJ *wf;
 };
 

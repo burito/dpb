@@ -854,7 +854,7 @@ void wf_parse_vertex(struct WF_OBJ *w, char *line)
 */
 void wf_parse_normal(struct WF_OBJ *w, char *line)
 {
-	line++;
+	line+=2;
 	for(int i=0; i<3; i++)
 	{
 		while( (*line == ' ' || *line == '\t') ) line++;
@@ -871,7 +871,7 @@ void wf_parse_normal(struct WF_OBJ *w, char *line)
  */
 void wf_parse_texcoord(struct WF_OBJ *w, char *line)
 {
-	line++;
+	line+=2;
 	for(int i=0; i<2; i++)
 	{
 		while( (*line == ' ' || *line == '\t') ) line++;
