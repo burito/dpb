@@ -152,8 +152,11 @@ struct MESH_OPENGL* mesh_load(char *filename)
 		memset(w->materials, 0, sizeof(struct MATERIAL_OPENGL) * w->num_materials );
 		for(int i=0; i<w->num_materials; i++)
 		{
-			w->materials[i].filename = strdup(wf->materials[i].filename);
-			w->materials[i].image = img_load(w->materials[i].filename);
+			if(wf->materials[i].filename)
+			{
+				w->materials[i].filename = strdup(wf->materials[i].filename);
+				w->materials[i].image = img_load(w->materials[i].filename);
+			}
 		}
 	}
 
@@ -170,6 +173,7 @@ void mesh_draw(struct MESH_OPENGL *w)
 	if(!w)return;
 
 	if(w->num_materials)
+	if( w->materials[0].filename )
 	{
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, w->materials[0].image->id);
@@ -178,6 +182,9 @@ void mesh_draw(struct MESH_OPENGL *w)
 	glBindVertexArray( w->vertex_array );
 	glDrawElements( GL_TRIANGLES, w->wf->num_triangles*3, GL_UNSIGNED_INT, 0 );
 	glBindVertexArray( 0 );
+
+	glDisable(GL_TEXTURE_2D);
+
 	return;
 }
 

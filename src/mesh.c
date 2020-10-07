@@ -701,15 +701,15 @@ void wf_count_material(struct WF_OBJ *w, char *line)
 /*
  * Read the mtl library file.
  */
-void wf_parse_mtllib(struct WF_OBJ *w, char *line)
+void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 {
 	// while it's not whitespace
-	while( !(*line == ' ' || *line == '\t') ) line++;
+	while( !(*line_in == ' ' || *line_in == '\t') ) line_in++;
 	// while it is whitespace
-	while( (*line == ' ' || *line == '\t') ) line++;
+	while( (*line_in == ' ' || *line_in == '\t') ) line_in++;
 
 	{
-		char *tmpline = line;
+		char *tmpline = line_in;
 		while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) ) tmpline++;
 		*tmpline = 0;
 	}
@@ -717,7 +717,7 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line)
 	char *tmp = strdup(w->filename);
 	char *filedir = dirname(tmp);
 	char filepath[1024];
-	snprintf(filepath, 1024, "%s/%s", filedir, line);
+	snprintf(filepath, 1024, "%s/%s", filedir, line_in);
 
 	log_info("Loading Wavefront MTL(\"%s\");", filepath);
 
@@ -731,8 +731,9 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line)
 	// count the materials
 	w->num_materials = 0;
 	char linestr[1024];
-	while(fgets(line, 1024, fptr))
+	while(fgets(linestr, 1024, fptr))
 	{
+		char *line = linestr;
 		while( *line == ' ' || *line == '\t' ) line++;
 		switch(line[0]) {
 		case 'n':
@@ -749,12 +750,14 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line)
 		log_fatal("malloc(materials) = %s", strerror(errno));
 		goto WF_PARSE_MTLLIB_MALLOC;
 	}
+	memset( w->materials, 0, sizeof(struct WF_MTL) * w->num_materials );
 	w->num_materials = 0;
 
 	// now that we know how many, and have allocated, parse them
 	fseek(fptr, SEEK_SET, 0);
-	while(fgets(line, 1024, fptr))
+	while(fgets(linestr, 1024, fptr))
 	{
+		char *line = linestr;
 		while( *line == ' ' || *line == '\t' ) line++;
 		switch(line[0]) {
 		case 'n':
@@ -794,7 +797,14 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line)
 					char *tmpline = line;
 					while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) ) tmpline++;
 					*tmpline = 0;
-					// the name is now null-terminated, copy it
+					// the name is now null-terminated, now replace \'s with /'s
+					tmpline = line;
+					while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) )
+					{
+						if( *tmpline == '\\') *tmpline = '/';
+						tmpline++;
+					}
+					// now copy the string
 					snprintf(filepath, 1024, "%s/%s", filedir, line);
 					w->materials[w->current_material].filename = strdup(filepath);
 					break;
@@ -806,6 +816,7 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line)
 	for(int i=0; i<w->num_materials; i++)
 	{
 		log_debug("Material[%d] = (%s, %s)", i, w->materials[i].name, w->materials[i].filename);
+
 	}
 
 	goto WF_PARSE_MTLLIB_SUCCESS;
