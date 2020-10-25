@@ -34,7 +34,7 @@ void fps_movement(vec4 *position, vec4 *angle, float velocity)
 	vec3 requested = {{0,0,0}};
 
 	if(keys[KEY_LSHIFT])
-		velocity *= 10.0;
+		velocity *= 0.10;
 
 	if(keys[KEY_W])
 	{

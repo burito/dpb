@@ -7,3 +7,6 @@
 [submodule "deps/hidapi"]
 	path = deps/hidapi
 	url = git@github.com:signal11/hidapi
+[submodule "deps/stb"]
+	path = deps/stb
+	url = git@github.com:nothings/stb
