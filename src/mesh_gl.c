@@ -71,8 +71,7 @@ static void img_glinit(struct IMAGE_OPENGL *image)
 				GL_UNSIGNED_BYTE, t->buf );
 */
 
-	glTexImage2D(GL_TEXTURE_2D, 0, intfmt, image->size.x, image->size.y,
-		0, type, GL_UNSIGNED_BYTE, image->buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, intfmt, image->size.x, image->size.y, 0, type, GL_UNSIGNED_BYTE, image->buffer);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -172,15 +171,31 @@ void mesh_draw(struct MESH_OPENGL *w)
 {
 	if(!w)return;
 
+	glBindVertexArray( w->vertex_array );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
+
 	if(w->num_materials)
-	if( w->materials[0].filename )
 	{
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, w->materials[0].image->id);
+		int offset = 0;
+		for(int i=0; i<w->num_materials; i++)
+		{
+			if( w->materials[i].filename != NULL )
+			{
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, w->materials[i].image->id);
+			}
+
+			int length = w->wf->materials[i].num_triangles * 3;
+			if( length )
+				glDrawElements( GL_TRIANGLES, length, GL_UNSIGNED_INT, (void*)offset );
+			offset += length*sizeof(int32_t);
+		}
+	}
+	else
+	{
+		glDrawElements( GL_TRIANGLES, w->wf->num_triangles, GL_UNSIGNED_INT, 0 );
 	}
 
-	glBindVertexArray( w->vertex_array );
-	glDrawElements( GL_TRIANGLES, w->wf->num_triangles*3, GL_UNSIGNED_INT, 0 );
 	glBindVertexArray( 0 );
 
 	glDisable(GL_TEXTURE_2D);

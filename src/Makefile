@@ -37,7 +37,7 @@ else
 GLSLANG = deps/vulkan-lib/win/glslangValidator.exe
 PLATFORM = win
 WINDRES = windres
-CC = gcc -g
+CC = clang -g
 default: $(BINARY_NAME).exe
 endif
 endif

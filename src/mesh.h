@@ -33,6 +33,7 @@ struct WF_MTL
 //	IMG *map_Ka, *map_Kd, *map_d, *map_bump;	// amb, spec, alpha, bump
 	char *name;
 	char *filename;
+	int num_triangles;
 };
 
 struct WF_TRIANGLE_CORNER
@@ -40,14 +41,15 @@ struct WF_TRIANGLE_CORNER
 	int vertex;
 	int texcoord;
 	int normal;
+	int smoothgroup;
 };
 
 struct WF_TRIANGLE
 {
-	struct WF_TRIANGLE_CORNER corner[3];
+	int corner[3];
 	vec3 normal;
 	int smoothgroup;
-	struct WF_MTL *m;
+	int material;
 };
 
 
@@ -63,22 +65,16 @@ struct smoothgroup_table {
 	struct WF_TRIANGLE **triangles;
 };
 
+struct hash_corner { struct WF_TRIANGLE_CORNER key; int value; };
+
 struct WF_OBJ
 {
 	struct WF_MTL *materials;
-	struct WF_TRIANGLE *triangles;
 
 	int num_materials;
 	int num_groups;
-	int num_verticies;
-	int num_normals;
-	int num_texcoords;
-	int num_faces;
-	int num_triangles;
 
-	vec3 *verticies;	// v
-	vec2 *texcoords;	// vt
-	vec3 *normals;		// vn
+
 
 	int current_smoothgroup;
 	int *smoothgroups;
@@ -92,6 +88,19 @@ struct WF_OBJ
 	int3 *index_buffer_data;
 
 	char *filename;
+
+ 	struct hash_corner *corners;
+	struct WF_TRIANGLE *triangles;
+	vec3 *verticies;	// v
+	vec2 *texcoords;	// vt
+	vec3 *normals;		// vn
+
+	int num_verticies;
+	int num_normals;
+	int num_texcoords;
+	int num_corners;
+	int num_triangles;
+
 };
 
 
@@ -103,3 +112,6 @@ void mtl_end(void);
 
 struct WF_OBJ* wf_load(char *filename);
 void wf_free(struct WF_OBJ *w);
+
+
+struct WF_TRIANGLE_CORNER wf_parse_corner_string(const char *line);
