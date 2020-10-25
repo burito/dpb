@@ -23,13 +23,6 @@ freely, subject to the following restrictions:
 
 #define _XOPEN_SOURCE 500	// for strdup on linux
 
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl3.h>
-#else
-#include <GL/glew.h>
-#endif
-
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -44,7 +37,6 @@ freely, subject to the following restrictions:
 
 #include "3dmaths.h"
 #include "mesh.h"
-#include "glerror.h"
 #include "log.h"
 
 #include <fast_atof.c>
