@@ -172,7 +172,8 @@ void mesh_draw(struct MESH_OPENGL *w)
 	if(!w)return;
 
 	glBindVertexArray( w->vertex_array );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
+//	glBindBuffer( GL_ARRAY_BUFFER, w->array_buffer );
+//	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
 
 	if(w->num_materials)
 	{
@@ -198,7 +199,7 @@ void mesh_draw(struct MESH_OPENGL *w)
 
 	glBindVertexArray( 0 );
 
-	glDisable(GL_TEXTURE_2D);
+//	glDisable(GL_TEXTURE_2D);
 
 	return;
 }
