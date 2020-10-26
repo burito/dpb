@@ -29,3 +29,4 @@ freely, subject to the following restrictions:
 
 char* glError(int error);
 char* glErrorFb(GLenum status);
+char* glerr_ShaderType( GLenum shaderType );
