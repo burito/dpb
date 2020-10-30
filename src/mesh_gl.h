@@ -43,8 +43,16 @@ struct IMAGE_OPENGL
 
 struct MATERIAL_OPENGL
 {
-	char *filename;
-	struct IMAGE_OPENGL *image;
+	// diffuse
+	char *file_Kd;
+	struct IMAGE_OPENGL *map_Kd;
+
+	// specular
+	char *file_Ks;
+	struct IMAGE_OPENGL *map_Ks;
+
+	char *file_d;		// mask
+	char *file_bump;	// bump
 };
 
 struct MESH_OPENGL

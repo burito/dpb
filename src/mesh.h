@@ -32,7 +32,11 @@ struct WF_MTL
 //	float4 colour;		// colour + alpha
 //	IMG *map_Ka, *map_Kd, *map_d, *map_bump;	// amb, spec, alpha, bump
 	char *name;
-	char *filename;
+	char *map_Ka;
+	char *map_Kd;
+	char *map_Ks;
+	char *map_d;
+	char *map_bump;
 	int num_triangles;
 };
 

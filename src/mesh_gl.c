@@ -151,10 +151,15 @@ struct MESH_OPENGL* mesh_load(char *filename)
 		memset(w->materials, 0, sizeof(struct MATERIAL_OPENGL) * w->num_materials );
 		for(int i=0; i<w->num_materials; i++)
 		{
-			if(wf->materials[i].filename)
+			if(wf->materials[i].map_Kd)
 			{
-				w->materials[i].filename = strdup(wf->materials[i].filename);
-				w->materials[i].image = img_load(w->materials[i].filename);
+				w->materials[i].file_Kd = strdup(wf->materials[i].map_Kd);
+				w->materials[i].map_Kd = img_load(w->materials[i].file_Kd);
+			}
+			if(wf->materials[i].map_Ks)
+			{
+				w->materials[i].file_Ks = strdup(wf->materials[i].map_Ks);
+				w->materials[i].map_Ks = img_load(w->materials[i].file_Ks);
 			}
 		}
 	}
@@ -172,19 +177,43 @@ void mesh_draw(struct MESH_OPENGL *w)
 	if(!w)return;
 
 	glBindVertexArray( w->vertex_array );
-//	glBindBuffer( GL_ARRAY_BUFFER, w->array_buffer );
-//	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
+	glBindBuffer( GL_ARRAY_BUFFER, w->array_buffer );
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 32, (GLvoid*)0);
+	glNormalPointer(GL_FLOAT, 32, (GLvoid*)12);
+	glTexCoordPointer(2, GL_FLOAT, 32, (GLvoid*)24);
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
 
 	if(w->num_materials)
 	{
-		int offset = 0;
+		size_t offset = 0;
 		for(int i=0; i<w->num_materials; i++)
 		{
-			if( w->materials[i].filename != NULL )
+			glActiveTexture(GL_TEXTURE0);
+			if( w->materials[i].file_Kd != NULL )
 			{
 				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, w->materials[i].image->id);
+				glBindTexture(GL_TEXTURE_2D, w->materials[i].map_Kd->id);
 			}
+			else
+			{
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+			glActiveTexture(GL_TEXTURE1);
+			if( w->materials[i].file_Ks != NULL )
+			{
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, w->materials[i].map_Ks->id);
+			}
+			else
+			{
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
 
 			int length = w->wf->materials[i].num_triangles * 3;
 			if( length )
@@ -197,6 +226,17 @@ void mesh_draw(struct MESH_OPENGL *w)
 		glDrawElements( GL_TRIANGLES, w->wf->num_triangles*3, GL_UNSIGNED_INT, 0 );
 	}
 
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glBindBufferARB(GL_ARRAY_BUFFER, 0);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 	glBindVertexArray( 0 );
 
 //	glDisable(GL_TEXTURE_2D);
@@ -208,8 +248,16 @@ void mesh_free(struct MESH_OPENGL *w)
 {
 	for(int i=0; i<w->num_materials; i++)
 	{
-		free(w->materials[i].filename);
-		img_free(w->materials[i].image);
+		if(w->materials[i].file_Kd)
+		{
+			free(w->materials[i].file_Kd);
+			img_free(w->materials[i].map_Kd);
+		}
+		if(w->materials[i].file_Ks)
+		{
+			free(w->materials[i].file_Ks);
+			img_free(w->materials[i].map_Ks);
+		}
 	}
 	wf_free(w->wf);
 	free(w);

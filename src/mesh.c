@@ -253,14 +253,29 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 			if(strstr(line, "map_"))
 			{ // this is a texture map of some kind
 				line += 5;
+				char **target = NULL;
+
 				switch(line[0]) {
 				case 'a':	// map_Ka - ambient
+					target = &w->materials[w->current_material].map_Ka;
+					break;
 				case 's':	// map_Ks - specular
+					target = &w->materials[w->current_material].map_Ks;
+					break;
 				case 'u':	// map_bump - bump map
+					target = &w->materials[w->current_material].map_bump;
+					break;
 				case ' ':	// map_d - stencil map
+					target = &w->materials[w->current_material].map_d;
+					break;
 				default:
 					break; // we don't care yet
 				case 'd':	// map_Kd - diffuse
+					target = &w->materials[w->current_material].map_Kd;
+					break;
+				}
+				if ( target != NULL )
+				{
 					// while it is not whitespace
 					while( !(*line == ' ' || *line == '\t') ) line++;
 					// continue until the whitespace ends
@@ -278,8 +293,7 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 					}
 					// now copy the string
 					snprintf(filepath, 1024, "%s/%s", filedir, line);
-					w->materials[w->current_material].filename = strdup(filepath);
-					break;
+					*target = strdup(filepath);
 				}
 			}
 		}
@@ -367,6 +381,10 @@ void wf_parse_texcoord(struct WF_OBJ *w, char *line)
 	{
 		while( (*line == ' ' || *line == '\t') ) line++;
 		texcoord.f[i] = fast_atof(line);
+		if( i == 1 )
+		{// flip the Y coordinate of texture maps
+			texcoord.f[i] = 1.0 - texcoord.f[i];
+		}
 		while( !(*line == ' ' || *line == '\t' || *line == '\n' || *line == '\r' || *line == 0 ) ) line++;
 	}
 	arrput(w->texcoords, texcoord);
@@ -498,6 +516,7 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 	while( *line == ' ' || *line == '\t' ) line++;
 	// we should be at the start of a corner definition, or an end of line
 	// while we're not at the end of the line
+
 	while( !(*line == 0 || *line == '\r' || *line == '\n') )
 	{
 		// write which smoothgroup this face is in
@@ -505,9 +524,10 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 		triangle.material = w->current_material;
 		if(w->num_materials)w->materials[w->current_material].num_triangles++;
 
+		int offset = arrlen(w->triangles) - 1;
 		// the first two corners go in every triangle
-		triangle.corner[0] = w->triangles[first].corner[0];
-		triangle.corner[1] = w->triangles[first].corner[2];
+		triangle.corner[0] = w->triangles[offset].corner[0];
+		triangle.corner[1] = w->triangles[offset].corner[2];
 
 		int index = wf_parse_face_corner(w, line);
 		triangle.corner[2] = index;
