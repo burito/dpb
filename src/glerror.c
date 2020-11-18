@@ -95,8 +95,10 @@ char* glErrorFb(GLenum status)
 char* glerr_ShaderType( GLenum shaderType )
 {
 	switch( shaderType ) {
+#ifndef __APPLE__
 	case GL_COMPUTE_SHADER:
 		return "GL_COMPUTE_SHADER";
+#endif
 	case GL_VERTEX_SHADER:
 		return "GL_VERTEX_SHADER";
 	case GL_TESS_CONTROL_SHADER:

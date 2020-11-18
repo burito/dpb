@@ -23,13 +23,14 @@ freely, subject to the following restrictions:
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #else
 #include <GL/glew.h>
 #endif
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <stb/stb_image.h>
 
 #include "mesh_gl.h"
@@ -179,12 +180,15 @@ void mesh_draw(struct MESH_OPENGL *w)
 	glBindVertexArray( w->vertex_array );
 	glBindBuffer( GL_ARRAY_BUFFER, w->array_buffer );
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 32, (GLvoid*)0);
-	glNormalPointer(GL_FLOAT, 32, (GLvoid*)12);
-	glTexCoordPointer(2, GL_FLOAT, 32, (GLvoid*)24);
+	glEnableVertexAttribArray( 0 );
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)0 );
+
+	glEnableVertexAttribArray( 1 );
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)12 );
+
+	glEnableVertexAttribArray( 2 );
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)24 );
+
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
 
 	if(w->num_materials)
@@ -232,11 +236,8 @@ void mesh_draw(struct MESH_OPENGL *w)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray( 0 );
 
 //	glDisable(GL_TEXTURE_2D);

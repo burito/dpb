@@ -21,7 +21,8 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#define _XOPEN_SOURCE 500	// for strdup on linux
+#define _XOPEN_SOURCE 600L	// for strdup on linux
+//#define _POSIX_C_SOURCE // for strdup on macos
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
@@ -484,8 +485,6 @@ int wf_parse_face_corner(struct WF_OBJ *w, char *line)
  */
 void wf_parse_face(struct WF_OBJ *w, char *line)
 {
-	// index of the first triangle, needed for later
-	int first = arrlen(w->triangles);
 	struct WF_TRIANGLE triangle;
 	memset(&triangle, 0, sizeof(struct WF_TRIANGLE));
 
@@ -723,7 +722,7 @@ WF_LOAD_ALLOC_SMOOTHGROUPS:
 		w->texcoords = NULL;
 	}
 	arrfree(w->verticies);
-WF_LOAD_ALLOC:
+//WF_LOAD_ALLOC:
 	free(w->filename);
 WF_LOAD_STRDUP_FILENAME:
 	free(w);
