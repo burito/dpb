@@ -270,7 +270,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //			TranslateMessage(uMsg);
 		}
 		bit = 1;
-		/* fall through */
+		__attribute__((fallthrough));
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		code = (HIWORD(lParam)) & 0x1ff;
@@ -297,7 +297,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONDOWN:
 		bit = 1;
-		/* fall through */
+		__attribute__((fallthrough));
 	case WM_LBUTTONUP:
 		mouse[0]=bit;
 		if(w32_moving)
@@ -309,22 +309,22 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_MBUTTONDOWN:
 		bit = 1;
-		/* fall through */
+		__attribute__((fallthrough));
 	case WM_MBUTTONUP:
 		mouse[1]=bit;
 		return 0;
 
 	case WM_RBUTTONDOWN:
 		bit = 1;
-		/* fall through */
+		__attribute__((fallthrough));
 	case WM_RBUTTONUP:
 		mouse[2]=bit;
 		return 0;
 
 	case WM_XBUTTONDOWN:
 		bit = 1;
-		/* fall through */
-	case WM_XBUTTONUP:
+		__attribute__((fallthrough));
+	case WM_XBUTTONUP: 
 		switch(GET_XBUTTON_WPARAM(wParam)) {
 		case XBUTTON1:
 			mouse[3]=bit;
@@ -559,6 +559,7 @@ static void handle_events(void)
 			switch(mesg.message) {
 			case WM_KEYDOWN:
 				TranslateMessage(&mesg);
+				__attribute__((fallthrough));
 			default:
 				break;
 			}

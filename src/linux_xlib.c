@@ -320,7 +320,7 @@ static void handle_events(void)
 				return;
 			}
 			bit = 1;
-			/* fall through */
+			__attribute__((fallthrough));
 		case KeyRelease:
 			{
 				int code = event.xkey.keycode;

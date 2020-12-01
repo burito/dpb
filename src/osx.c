@@ -274,7 +274,7 @@ int handle_event(id event)
 			}
 		}
 		bit=1;
-		/* fall through */
+		__attribute__((fallthrough));
 	case 11: // NSEventTypeKeyUp:
 		{
 			NSUInteger key_code = ((NSUInteger (*)(id, SEL))objc_msgSend)(event, sel_keyCode);
