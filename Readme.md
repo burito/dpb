@@ -42,7 +42,7 @@ Yes, the version of Internet Explorer matters with Win9x. If you want to be clev
 * Install [git](git-scm.com)
 * Install [msys2-x86_64-20210105.exe](https://www.msys2.org/)
 ```bash
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-imagemagick mingw-w64-x86_64-clang mingw-w64-x86_64-clang-tools-extra make vim man-pages-posix --disable-download-timeout
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-imagemagick mingw-w64-x86_64-clang mingw-w64-x86_64-clang-tools-extra mingw-w64-x86_64-glslang make vim man-pages-posix --disable-download-timeout
 ```
 * Add the following to your path...
     * `C:\msys64\mingw64\bin`
