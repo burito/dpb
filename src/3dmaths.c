@@ -133,6 +133,23 @@ mat4x4 mat4x4_translate_float(float x, float y, float z)
 	return mat4x4_translate_vec3(a);
 }
 
+mat4x4 mat4x4_scale_vec3(vec3 v)
+{
+	mat4x4 a = { .f={
+		1, 0, 0, v.x,
+		0, 1, 0, v.y,
+		0, 0, 1, v.z,
+		0, 0, 0, 1
+	}};
+	return a;
+}
+
+mat4x4 mat4x4_scale_float(float x, float y, float z)
+{
+	vec3 a = { .f={ x, y, z}};
+	return mat4x4_scale_vec3(a);
+}
+
 // http://www.songho.ca/opengl/gl_projectionmatrix.html#perspective
 mat4x4 mat4x4_perspective(float near, float far, float width, float height)
 {
@@ -151,6 +168,22 @@ mat4x4 mat4x4_orthographic(float near, float far, float width, float height)
 		1/(0.5*width), 0, 0, 0,
 		0, 1/(0.5*height), 0, 0,
 		0, 0, (-2)/(far-near), -((far*near)/(far-near)),
+		0, 0, 0, 1
+	}};
+	return ret;
+}
+// https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
+// http://ps-2.kev009.com/tl/techlib/manuals/adoclib/libs/openglrf/glortho.htm
+mat4x4 mat4x4_glortho(double left, double right, double bottom, double top, double near, double far)
+{
+	double tx = -((right+left) / (right-left));
+	double ty = -((top+bottom) / (top-bottom));
+	double tz = -((far+near) / (far-near));
+
+	mat4x4 ret = { .f={
+		2.0/(right-left), 0, 0, tx,
+		0, 2.0/(top-bottom), 0, ty,
+		0, 0, -2.0/(far-near), tz,
 		0, 0, 0, 1
 	}};
 	return ret;

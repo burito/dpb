@@ -108,8 +108,11 @@ mat4x4 mat4x4_rot_y(float t) __attribute__((const));
 mat4x4 mat4x4_rot_z(float t) __attribute__((const));
 mat4x4 mat4x4_translate_vec3(vec3 v) __attribute__((const));
 mat4x4 mat4x4_translate_float(float x, float y, float z) __attribute__((const));
+mat4x4 mat4x4_scale_vec3(vec3 v) __attribute__((const));
+mat4x4 mat4x4_scale_float(float x, float y, float z) __attribute__((const));
 mat4x4 mat4x4_perspective(float near, float far, float width, float height) __attribute__((const));
 mat4x4 mat4x4_orthographic(float near, float far, float width, float height) __attribute__((const));
+mat4x4 mat4x4_glortho(double left, double right, double bottom, double top, double near, double far) __attribute__((const));
 
 
 vec3 vec3_norm(vec3 v) __attribute__((const));
