@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012 Daniel Burke
+Copyright (c) 2012,2021 Daniel Burke
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -29,7 +29,8 @@ freely, subject to the following restrictions:
 
 #include "3dmaths.h"
 
-/* Fast Inverse Square Root
+/*
+ * Fast Inverse Square Root.
  * http://www.beyond3d.com/content/articles/8/
  */
 float finvsqrt(float x)
@@ -44,6 +45,10 @@ float finvsqrt(float x)
 	return x;
 }
 
+/*
+ * Prints a given 4x4 matrix.
+ * Useful for debugging.
+ */
 void mat4x4_print(mat4x4 m)
 {
 	printf("\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n",
@@ -54,6 +59,9 @@ void mat4x4_print(mat4x4 m)
 	);
 }
 
+/*
+ * Returns the Inverse of a matrix.
+ */
 mat4x4 mat4x4_invert(mat4x4 m)
 {
 	mat4x4 x;
@@ -61,6 +69,9 @@ mat4x4 mat4x4_invert(mat4x4 m)
 	return x;
 }
 
+/*
+ * Returns the Transpose of a given matrix.
+ */
 mat4x4 mat4x4_transpose(mat4x4 m)
 {
 	mat4x4 x = { .f={
@@ -72,6 +83,9 @@ mat4x4 mat4x4_transpose(mat4x4 m)
 	return x;
 }
 
+/*
+ * Returns the Identity matrix.
+ */
 mat4x4 mat4x4_identity(void)
 {
 	mat4x4 a = { .f={
@@ -83,6 +97,9 @@ mat4x4 mat4x4_identity(void)
 	return a;
 }
 
+/*
+ * Returns a Rotation matrix around the X axis.
+ */
 mat4x4 mat4x4_rot_x(float t)
 {
 	mat4x4 a = { .f={
@@ -94,6 +111,9 @@ mat4x4 mat4x4_rot_x(float t)
 	return a;
 }
 
+/*
+ * Returns a Rotation matrix around the Y axis.
+ */
 mat4x4 mat4x4_rot_y(float t)
 {
 	mat4x4 a = { .f={
@@ -105,6 +125,9 @@ mat4x4 mat4x4_rot_y(float t)
 	return a;
 }
 
+/*
+ * Returns a Rotation matrix around the Z axis.
+ */
 mat4x4 mat4x4_rot_z(float t)
 {
 	mat4x4 a = { .f={
@@ -116,6 +139,9 @@ mat4x4 mat4x4_rot_z(float t)
 	return a;
 }
 
+/*
+ * Returns a translation matrix for the given vector.
+ */
 mat4x4 mat4x4_translate_vec3(vec3 v)
 {
 	mat4x4 a = { .f={
@@ -127,12 +153,18 @@ mat4x4 mat4x4_translate_vec3(vec3 v)
 	return a;
 }
 
+/*
+ * Returns a translation matrix for the given vector.
+ */
 mat4x4 mat4x4_translate_float(float x, float y, float z)
 {
 	vec3 a = { .f={ x, y, z}};
 	return mat4x4_translate_vec3(a);
 }
 
+/*
+ * Returns a scaling matrix for the given vector.
+ */
 mat4x4 mat4x4_scale_vec3(vec3 v)
 {
 	mat4x4 a = { .f={
@@ -144,15 +176,21 @@ mat4x4 mat4x4_scale_vec3(vec3 v)
 	return a;
 }
 
+/*
+ * Returns a scaling matrix for the given vector.
+ */
 mat4x4 mat4x4_scale_float(float x, float y, float z)
 {
 	vec3 a = { .f={ x, y, z}};
 	return mat4x4_scale_vec3(a);
 }
 
-// http://www.songho.ca/opengl/gl_projectionmatrix.html#perspective
+/*
+ * This is equivalent to glFrustum(), except looking into -Z.
+ * (+Z goes out of the screen towards the user)
+ */
 mat4x4 mat4x4_perspective(float near, float far, float width, float height)
-{
+{ // http://www.songho.ca/opengl/gl_projectionmatrix.html#perspective
 	mat4x4 ret = { .f={
 		near/(0.5*width), 0, 0, 0,
 		0, near/(0.5*height), 0, 0,
@@ -162,10 +200,12 @@ mat4x4 mat4x4_perspective(float near, float far, float width, float height)
 	return ret;
 }
 
-// https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
-// https://lmb.informatik.uni-freiburg.de/people/reisert/opengl/doc/glFrustum.html
+/*
+ * This is an exact implementation of glFrustum().
+ * See: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+ */
 mat4x4 mat4x4_glfrustum(double left, double right, double bottom, double top, double near, double far)
-{
+{ // https://lmb.informatik.uni-freiburg.de/people/reisert/opengl/doc/glFrustum.html
 	double A = (right + left) / (right - left);
 	double B = (top + bottom) / (top - bottom);
 	double C = (far + near) / (far - near);
@@ -180,7 +220,10 @@ mat4x4 mat4x4_glfrustum(double left, double right, double bottom, double top, do
 	return ret;
 }
 
-// http://www.songho.ca/opengl/gl_projectionmatrix.html#ortho
+/*
+ * This is a simplified version of glOrtho().
+ * http://www.songho.ca/opengl/gl_projectionmatrix.html#ortho
+ */
 mat4x4 mat4x4_orthographic(float near, float far, float width, float height)
 {
 	mat4x4 ret = { .f={
@@ -191,10 +234,13 @@ mat4x4 mat4x4_orthographic(float near, float far, float width, float height)
 	}};
 	return ret;
 }
-// https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
-// http://ps-2.kev009.com/tl/techlib/manuals/adoclib/libs/openglrf/glortho.htm
+
+/*
+ * This is an exact implementation of glOrtho().
+ * https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
+ */
 mat4x4 mat4x4_glortho(double left, double right, double bottom, double top, double near, double far)
-{
+{ // http://ps-2.kev009.com/tl/techlib/manuals/adoclib/libs/openglrf/glortho.htm
 	double tx = -((right+left) / (right-left));
 	double ty = -((top+bottom) / (top-bottom));
 	double tz = -((far+near) / (far-near));
@@ -208,28 +254,44 @@ mat4x4 mat4x4_glortho(double left, double right, double bottom, double top, doub
 	return ret;
 }
 
-
+/*
+ * Returns the Magnitude of a Vector.
+ * ie. the Length, without the sqrt() applied.
+ */
 float vec2_mag(vec2 c)
 {
 	return c.x*c.x + c.y*c.y;
 }
 
+/*
+ * Returns the Magnitude of a Vector.
+ * ie. the Length, without the sqrt() applied.
+ */
 float vec3_mag(vec3 v)
 {
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
+/*
+ * Returns the Greater of the two supplied numbers.
+ */
 float vec2_max(vec2 c)
 {
 	return c.x >= c.y ? c.x : c.y;
 }
 
+/*
+ * Returns the Greater of the three supplied numbers.
+ */
 float vec3_max(vec3 v)
 {
 	return (v.x>=v.y && v.x>=v.z) ? v.x : (v.y>=v.z?v.y:v.z);
 }
 
-
+/*
+ * Returns the normalised vector.
+ * i.e. makes the length = 1.
+ */
 vec3 vec3_norm(vec3 v)
 {
 	float len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
@@ -237,13 +299,17 @@ vec3 vec3_norm(vec3 v)
 	return mul(v,scale);
 }
 
-/* inner product (dot product) of two vec3ors */
+/*
+ * Returns the inner product (dot product) of two vectors.
+ */
 float vec3_dot(vec3 l, vec3 r)
 {
 	return l.x * r.x + l.y * r.y + l.z * r.z;
 }
 
-/* outer product (cross product) of two vec3ors */
+/*
+ * Returns the outer product (cross product) of two vectors.
+ */
 vec3 vec3_cross(vec3 l, vec3 r)
 {
 	vec3 x;
@@ -253,7 +319,9 @@ vec3 vec3_cross(vec3 l, vec3 r)
 	return x;
 }
 
-
+/*
+ * Returns the Jacobian of two vectors.
+ */
 mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r)
 {
 	mat3x3 x = {{
@@ -264,7 +332,12 @@ mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r)
 	return x;
 }
 
-// for testing if a vector is inside a volume
+/*
+ * Checks if every element of the left vector is
+ * greater than every element of the right vector.
+ *
+ * Useful for testing if a vector is inside a volume.
+ */
 int vec3_greaterthan_vec3(vec3 l, vec3 r)
 {
 	if(l.x > r.x)
@@ -274,7 +347,12 @@ int vec3_greaterthan_vec3(vec3 l, vec3 r)
 	return 0;
 }
 
-// for testing if a vector is inside a volume
+/*
+ * Checks if every element of the left vector is
+ * less than every element of the right vector.
+ *
+ * Useful for testing if a vector is inside a volume.
+ */
 int vec3_lessthan_vec3(vec3 l, vec3 r)
 {
 	if(l.x < r.x)
@@ -289,43 +367,57 @@ The following functions are to be called via the
 _Generic() macro's max(), mul(), add() and sub()
 */
 
-// returns the higher of the two int arguments
+/*
+ * Returns the greater of the two int arguments.
+ */
 int max_int(int l, int r)
 {
 	return l > r ? l : r;
 }
 
-// returns the higher of the two float arguments
+/*
+ * Returns the greater of the two float arguments.
+ */
 float max_float(float l, float r)
 {
 	return l > r ? l : r;
 }
 
-// returns the higher of the two double arguments
+/*
+ * Returns the greater of the two double arguments.
+ */
 double max_double(double l, double r)
 {
 	return l > r ? l : r;
 }
 
-// returns the lower of the two int arguments
+/*
+ * Returns the lower of the two int arguments.
+ */
 int min_int(int l, int r)
 {
 	return l < r ? l : r;
 }
 
-// returns the lower of the two float arguments
+/*
+ * Returns the lower of the two float arguments.
+ */
 float min_float(float l, float r)
 {
 	return l < r ? l : r;
 }
 
-// returns the lower of the two double arguments
+/*
+ * Returns the lower of the two double arguments.
+ */
 double min_double(double l, double r)
 {
 	return l < r ? l : r;
 }
 
-
+/*
+ * Returns the product of a matrix and a vector.
+ */
 vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r)
 {
 	vec3 x;
@@ -336,6 +428,10 @@ vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r)
 	return x;
 }
 
+/*
+ * Converts a HmdMatrix34 to a mat4x4.
+ * Useful for working with OpenVR.
+ */
 mat4x4 mat4x4_mov_HmdMatrix34(HmdMatrix34_t x)
 {
 	mat4x4 r = { .f={
@@ -347,11 +443,18 @@ mat4x4 mat4x4_mov_HmdMatrix34(HmdMatrix34_t x)
 	return r;
 }
 
+/*
+ * Converts a HmdMatrix44 to a mat4x4.
+ * Useful for working with OpenVR.
+ */
 mat4x4 mat4x4_mov_HmdMatrix44(HmdMatrix44_t x)
 {	// they're the same, trust me!
 	return mat4x4_transpose( *((mat4x4*)((void*)&x)) );
 }
 
+/*
+ * Returns the product of two matricies.
+ */
 mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r)
 {
 	mat4x4 ret;
@@ -365,6 +468,9 @@ mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r)
 	return ret;
 }
 
+/*
+ * Returns the product of a matrix and a vector.
+ */
 vec3 mat4x4_mul_vec3(mat4x4 l, vec3 r)
 {
 	vec3 x;
@@ -375,6 +481,9 @@ vec3 mat4x4_mul_vec3(mat4x4 l, vec3 r)
 	return x;
 }
 
+/*
+ * Returns the sum of two matrices.
+ */
 mat4x4 mat4x4_add_mat4x4(mat4x4 l, mat4x4 r)
 {
 	mat4x4 x;
@@ -383,6 +492,9 @@ mat4x4 mat4x4_add_mat4x4(mat4x4 l, mat4x4 r)
 	return x;
 }
 
+/*
+ * Adds a float to every element of a matrix.
+ */
 mat4x4 mat4x4_add_float(mat4x4 l, float r)
 {
 	mat4x4 x;
@@ -391,6 +503,9 @@ mat4x4 mat4x4_add_float(mat4x4 l, float r)
 	return x;
 }
 
+/*
+ * Multiplies every element of a matrix by a float.
+ */
 mat4x4 mat4x4_mul_float(mat4x4 l, float r)
 {
 	mat4x4 x;
@@ -399,7 +514,9 @@ mat4x4 mat4x4_mul_float(mat4x4 l, float r)
 	return x;
 }
 
-
+/*
+ * Subracts a float from every element of a matrix.
+ */
 mat4x4 mat4x4_sub_mat4x4(mat4x4 l, mat4x4 r)
 {
 	mat4x4 x;
@@ -408,7 +525,9 @@ mat4x4 mat4x4_sub_mat4x4(mat4x4 l, mat4x4 r)
 	return x;
 }
 
-
+/*
+ * Returns the product of two vectors.
+ */
 vec3 vec3_mul_vec3(vec3 l, vec3 r)
 {
 	vec3 x;
@@ -418,6 +537,9 @@ vec3 vec3_mul_vec3(vec3 l, vec3 r)
 	return x;
 }
 
+/*
+ * Returns the quotient of two vectors.
+ */
 vec3 vec3_div_vec3(vec3 l, vec3 r)
 {
 	vec3 x;
@@ -427,89 +549,137 @@ vec3 vec3_div_vec3(vec3 l, vec3 r)
 	return x;
 }
 
+/*
+ * Returns the sum of two vectors.
+ */
 vec3 vec3_add_vec3(vec3 l, vec3 r)
 {
 	vec3 x = { .f={ l.x + r.x, l.y + r.y, l.z + r.z }};
 	return x;
 }
 
+/*
+ * Adds a float to every element of a vector.
+ */
 vec3 vec3_add_float(vec3 l, float r)
 {
 	vec3 x = { .f={ l.x + r, l.y + r, l.z + r }};
 	return x;
 }
 
+/*
+ * Subtracts a float from every element of a vector.
+ */
 vec3 vec3_sub_vec3(vec3 l, vec3 r)
 {
 	vec3 x = { .f={ l.x - r.x, l.y - r.y, l.z - r.z }};
 	return x;
 }
 
+/*
+ * Multiplies every element of a vector by a float.
+ */
 vec3 vec3_mul_float(vec3 l, float r)
 {
 	vec3 a = { .f={ l.x*r, l.y*r, l.z*r}};
 	return a;
 }
 
+/*
+ * Divides every element of a vector by a float.
+ */
 vec3 vec3_div_float(vec3 l, float r)
 {
 	vec3 a = { .f={ l.x/r, l.y/r, l.z/r}};
 	return a;
 }
 
-
+/*
+ * Multiplies two integers.
+ */
 int int_mul(int l, int r)
 {
 	return l * r;
 }
 
+/*
+ * Adds two integers.
+ */
 int int_add(int l, int r)
 {
 	return l + r;
 }
 
+/*
+ * Subracts an integer from another.
+ */
 int int_sub(int l, int r)
 {
 	return l - r;
 }
 
+/*
+ * Divides an integer by another.
+ */
 int int_div(int l, int r)
 {
 	return l / r;
 }
 
+/*
+ * Adds two vectors element-wise.
+ */
 int2 int2_add(int2 l, int2 r)
 {
 	int2 x = {l.x+r.x, l.y+r.y};
 	return x;
 }
 
+/*
+ * Multiplies a vector by an integer.
+ */
 int3 int3_mul_int(int3 l, int r)
 {
 	int3 x = {{l.x*r, l.y*r, l.z*r}};
 	return x;
 }
 
+/*
+ * Multiplies two floats.
+ */
 float float_mul(float l, float r)
 {
 	return l * r;
 }
 
+/*
+ * Adds two floats.
+ */
 float float_add(float l, float r)
 {
 	return l + r;
 }
 
+/*
+ * Subtracts one float from another.
+ */
 float float_sub_float(float l, float r)
 {
 	return l - r;
 }
 
+/*
+ * Divides one float by another.
+ */
 float float_div_float(float l, float r)
 {
 	return l / r;
 }
 
+/*
+ * Subtracts a vector from a 3-vector created from
+ * the given float, elementwise.
+ */
 vec3 float_sub_vec3(float l, vec3 r)
 {
 	vec3 x = { .x = l - r.x, .y = l - r.y, .z = l - r.z};
