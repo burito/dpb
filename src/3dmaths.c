@@ -161,6 +161,25 @@ mat4x4 mat4x4_perspective(float near, float far, float width, float height)
 	}};
 	return ret;
 }
+
+// https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+// https://lmb.informatik.uni-freiburg.de/people/reisert/opengl/doc/glFrustum.html
+mat4x4 mat4x4_glfrustum(double left, double right, double bottom, double top, double near, double far)
+{
+	double A = (right + left) / (right - left);
+	double B = (top + bottom) / (top - bottom);
+	double C = (far + near) / (far - near);
+	double D = (2.0*far*near) / (far - near);
+
+	mat4x4 ret = { .f={
+		(2*near)/(right - left), 0, A, 0,
+		0, (2*near)/(top-bottom), B, 0,
+		0, 0, C, D,
+		0, 0, -1, 0
+	}};
+	return ret;
+}
+
 // http://www.songho.ca/opengl/gl_projectionmatrix.html#ortho
 mat4x4 mat4x4_orthographic(float near, float far, float width, float height)
 {
