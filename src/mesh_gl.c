@@ -134,11 +134,11 @@ struct MESH_OPENGL* mesh_load(char *filename)
 	glEnableVertexAttribArray( 0 );
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)0 );
 
-	glEnableVertexAttribArray( 1 );
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)12 );
-
 	glEnableVertexAttribArray( 2 );
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)24 );
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)12 );
+
+	glEnableVertexAttribArray( 1 );
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)24 );
 
 	w->num_materials = wf->num_materials;
 	if(w->num_materials)
@@ -180,14 +180,14 @@ void mesh_draw(struct MESH_OPENGL *w)
 	glBindVertexArray( w->vertex_array );
 	glBindBuffer( GL_ARRAY_BUFFER, w->array_buffer );
 
-	glEnableVertexAttribArray( 0 );
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)0 );
+	// glEnableVertexAttribArray( 0 );
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)0 );
 
-	glEnableVertexAttribArray( 1 );
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)12 );
+	// glEnableVertexAttribArray( 2 );
+	// glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)12 );
 
-	glEnableVertexAttribArray( 2 );
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)24 );
+	// glEnableVertexAttribArray( 1 );
+	// glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct packed_verts), (void *)24 );
 
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, w->element_buffer );
 

@@ -145,10 +145,10 @@ mat4x4 mat4x4_rot_z(float t)
 mat4x4 mat4x4_translate_vec3(vec3 v)
 {
 	mat4x4 a = { .f={
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		v.x, v.y, v.z, 1
+		1, 0, 0, v.x,
+		0, 1, 0, v.y,
+		0, 0, 1, v.z,
+		0, 0, 0, 1
 	}};
 	return a;
 }
@@ -168,9 +168,9 @@ mat4x4 mat4x4_translate_float(float x, float y, float z)
 mat4x4 mat4x4_scale_vec3(vec3 v)
 {
 	mat4x4 a = { .f={
-		1, 0, 0, v.x,
-		0, 1, 0, v.y,
-		0, 0, 1, v.z,
+		v.x, 0, 0, 0,
+		0, v.y, 0, 0,
+		0, 0, v.z, 0,
 		0, 0, 0, 1
 	}};
 	return a;
@@ -461,10 +461,10 @@ mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r)
 	for(int y=0; y<4; y++)
 	for(int x=0; x<4; x++)
 		ret.m[y][x] =
-			r.m[y][0] * l.m[0][x] +
-			r.m[y][1] * l.m[1][x] +
-			r.m[y][2] * l.m[2][x] +
-			r.m[y][3] * l.m[3][x];
+			l.m[y][0] * r.m[0][x] +
+			l.m[y][1] * r.m[1][x] +
+			l.m[y][2] * r.m[2][x] +
+			l.m[y][3] * r.m[3][x];
 	return ret;
 }
 
