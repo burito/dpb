@@ -300,6 +300,18 @@ vec3 vec3_norm(vec3 v)
 }
 
 /*
+ * Returns the normalised vector.
+ * i.e. makes the length = 1.
+ */
+vec2 vec2_norm(vec2 v)
+{
+	float len = sqrt(v.x * v.x + v.y * v.y);
+	float scale = 1.0f / len;
+	return mul(v,scale);
+}
+
+
+/*
  * Returns the inner product (dot product) of two vectors.
  */
 float vec3_dot(vec3 l, vec3 r)
@@ -538,6 +550,17 @@ vec3 vec3_mul_vec3(vec3 l, vec3 r)
 }
 
 /*
+ * Returns the product of two vectors.
+ */
+vec2 vec2_mul_vec2(vec2 l, vec2 r)
+{
+	vec2 x;
+	x.x = l.x * r.x;
+	x.y = l.y * r.y;
+	return x;
+}
+
+/*
  * Returns the quotient of two vectors.
  */
 vec3 vec3_div_vec3(vec3 l, vec3 r)
@@ -559,6 +582,15 @@ vec3 vec3_add_vec3(vec3 l, vec3 r)
 }
 
 /*
+ * Returns the sum of two vectors.
+ */
+vec2 vec2_add_vec2(vec2 l, vec2 r)
+{
+	vec2 x = { .f={ l.x + r.x, l.y + r.y }};
+	return x;
+}
+
+/*
  * Adds a float to every element of a vector.
  */
 vec3 vec3_add_float(vec3 l, float r)
@@ -567,6 +599,24 @@ vec3 vec3_add_float(vec3 l, float r)
 	return x;
 }
 
+/*
+ * Adds a float to every element of a vector.
+ */
+vec2 vec2_add_float(vec2 l, float r)
+{
+	vec2 x = { .f={ l.x + r, l.y + r }};
+	return x;
+}
+
+
+/*
+ * Subtracts a float from every element of a vector.
+ */
+vec2 vec2_sub_vec2(vec2 l, vec2 r)
+{
+	vec2 x = { .f={ l.x - r.x, l.y - r.y }};
+	return x;
+}
 /*
  * Subtracts a float from every element of a vector.
  */
@@ -584,6 +634,16 @@ vec3 vec3_mul_float(vec3 l, float r)
 	vec3 a = { .f={ l.x*r, l.y*r, l.z*r}};
 	return a;
 }
+
+/*
+ * Multiplies every element of a vector by a float.
+ */
+vec2 vec2_mul_float(vec2 l, float r)
+{
+	vec2 a = { .f={ l.x*r, l.y*r}};
+	return a;
+}
+
 
 /*
  * Divides every element of a vector by a float.
@@ -674,6 +734,15 @@ float float_sub_float(float l, float r)
 float float_div_float(float l, float r)
 {
 	return l / r;
+}
+
+/*
+ * Divides a float, by each element of a vec2, returning a vec2
+ */
+vec2 float_div_vec2(float l, vec2 r)
+{
+	vec2 x = { .x = l / r.x, .y = l / r.y };
+	return x;
 }
 
 /*

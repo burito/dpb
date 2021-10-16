@@ -117,6 +117,7 @@ mat4x4 mat4x4_glortho(double left, double right, double bottom, double top, doub
 
 
 vec3 vec3_norm(vec3 v) __attribute__((const));
+vec2 vec2_norm(vec2 v) __attribute__((const));
 float vec3_dot(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_cross(vec3 l, vec3 r) __attribute__((const));
 
@@ -146,14 +147,21 @@ mat4x4 mat4x4_sub_mat4x4(mat4x4 l, mat4x4 r) __attribute__((const));
 
 vec3 vec3_mul_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_mul_float(vec3 l, float r) __attribute__((const));
+vec2 vec2_mul_vec2(vec2 l, vec2 r) __attribute__((const));
+vec2 vec2_mul_float(vec2 l, float r) __attribute__((const));
 vec3 vec3_div_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_div_float(vec3 l, float r) __attribute__((const));
 vec3 vec3_add_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_add_float(vec3 l, float r) __attribute__((const));
+vec2 vec2_add_vec2(vec2 l, vec2 r) __attribute__((const));
+vec2 vec2_add_float(vec2 l, float r) __attribute__((const));
+vec2 vec2_sub_vec2(vec2 l, vec2 r) __attribute__((const));
 vec3 vec3_sub_vec3(vec3 l, vec3 r) __attribute__((const));
 mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r) __attribute__((const));
 int vec3_greaterthan_vec3(vec3 l, vec3 r) __attribute__((const));
 int vec3_lessthan_vec3(vec3 l, vec3 r) __attribute__((const));
+
+
 
 
 float float_mul(float l, float r) __attribute__((const));
@@ -161,6 +169,7 @@ float float_add(float l, float r) __attribute__((const));
 float float_sub_float(float l, float r) __attribute__((const));
 vec3 float_sub_vec3(float l, vec3 r) __attribute__((const));
 float float_div_float(float l, float r) __attribute__((const));
+vec2 float_div_vec2(float l, vec2 r) __attribute__((const));
 
 int int_mul(int l, int r) __attribute__((const));
 int int_add(int l, int r) __attribute__((const));
@@ -223,6 +232,9 @@ double min_double(double l, double r) __attribute__((const));
 	vec3: _Generic(Y, \
 		vec3: vec3_mul_vec3, \
 		default: vec3_mul_float), \
+	vec2: _Generic(Y, \
+		vec2: vec2_mul_vec2, \
+		default: vec2_mul_float), \
 	int3: _Generic(Y, \
 		default: int3_mul_int), \
 	float: float_mul, \
@@ -236,6 +248,9 @@ double min_double(double l, double r) __attribute__((const));
 	vec3: _Generic(Y, \
 		vec3: vec3_add_vec3, \
 		default:vec3_add_float), \
+	vec2: _Generic(Y, \
+		vec2: vec2_add_vec2, \
+		default:vec2_add_float), \
 	float: float_add, \
 	int2: int2_add, \
 	default: int_add \
@@ -244,6 +259,7 @@ double min_double(double l, double r) __attribute__((const));
 #define sub(X,Y) _Generic(X, \
 	mat4x4: mat4x4_sub_mat4x4, \
 	vec3: vec3_sub_vec3, \
+	vec2: vec2_sub_vec2, \
 	float: _Generic(Y, \
 		vec3: float_sub_vec3, \
 		default:float_sub_float), \
@@ -254,7 +270,9 @@ double min_double(double l, double r) __attribute__((const));
 	vec3: _Generic(Y, \
 		vec3: vec3_div_vec3, \
 		default: vec3_div_float), \
-	float: float_div_float, \
+	float: _Generic(Y, \
+		vec2: float_div_vec2, \
+		float: float_div_float), \
 	default: int_div_int \
 	)(X,Y)
 
