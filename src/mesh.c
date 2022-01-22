@@ -192,6 +192,7 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 	char *filedir = dirname(tmp);
 	char filepath[1024];
 	snprintf(filepath, 1024, "%s/%s", filedir, line_in);
+	free(tmp);
 
 	log_info("Loading Wavefront MTL(\"%s\");", filepath);
 
