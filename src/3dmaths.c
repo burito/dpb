@@ -573,6 +573,17 @@ vec3 vec3_div_vec3(vec3 l, vec3 r)
 }
 
 /*
+ * Returns the quotient of two vectors.
+ */
+vec2 vec2_div_vec2(vec2 l, vec2 r)
+{
+	vec2 x;
+	x.x = l.x / r.x;
+	x.y = l.y / r.y;
+	return x;
+}
+
+/*
  * Returns the sum of two vectors.
  */
 vec3 vec3_add_vec3(vec3 l, vec3 r)
@@ -651,6 +662,15 @@ vec2 vec2_mul_float(vec2 l, float r)
 vec3 vec3_div_float(vec3 l, float r)
 {
 	vec3 a = { .f={ l.x/r, l.y/r, l.z/r}};
+	return a;
+}
+
+/*
+ * Divides every element of a vector by a float.
+ */
+vec2 vec2_div_float(vec2 l, float r)
+{
+	vec2 a = {{ l.x/r, l.y/r }};
 	return a;
 }
 

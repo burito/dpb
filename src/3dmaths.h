@@ -151,6 +151,8 @@ vec2 vec2_mul_vec2(vec2 l, vec2 r) __attribute__((const));
 vec2 vec2_mul_float(vec2 l, float r) __attribute__((const));
 vec3 vec3_div_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_div_float(vec3 l, float r) __attribute__((const));
+vec2 vec2_div_vec2(vec2 l, vec2 r) __attribute__((const));
+vec2 vec2_div_float(vec2 l, float r) __attribute__((const));
 vec3 vec3_add_vec3(vec3 l, vec3 r) __attribute__((const));
 vec3 vec3_add_float(vec3 l, float r) __attribute__((const));
 vec2 vec2_add_vec2(vec2 l, vec2 r) __attribute__((const));
@@ -270,6 +272,9 @@ double min_double(double l, double r) __attribute__((const));
 	vec3: _Generic(Y, \
 		vec3: vec3_div_vec3, \
 		default: vec3_div_float), \
+	vec2: _Generic(Y, \
+		vec2: vec2_div_vec2, \
+		default: vec2_div_float), \
 	float: _Generic(Y, \
 		vec2: float_div_vec2, \
 		float: float_div_float), \
