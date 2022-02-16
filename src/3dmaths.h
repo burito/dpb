@@ -24,6 +24,7 @@ freely, subject to the following restrictions:
 #ifndef __3DMATHS_H_
 #define __3DMATHS_H_ 1
 
+#include <stdint.h>
 
 #ifdef WATCOM
 #define sqrtf sqrt
@@ -40,15 +41,16 @@ typedef struct float4 {
 	float w;
 } float4;
 
-typedef struct int2 {
-	int x, y;
+typedef union int2 {
+	struct { int32_t x, y; };
+	int32_t f[2];
 } int2;
 
 typedef union {
-	struct { int x, y, z; };
-	struct { int2 xy; int iz; };
-	struct { int ix; int2 yz; };
-	int i[3];
+	struct { int32_t x, y, z; };
+	struct { int2 xy; int32_t iz; };
+	struct { int32_t ix; int2 yz; };
+	int32_t i[3];
 } int3;
 
 typedef struct byte4 {
@@ -160,8 +162,8 @@ vec2 vec2_add_float(vec2 l, float r) __attribute__((const));
 vec2 vec2_sub_vec2(vec2 l, vec2 r) __attribute__((const));
 vec3 vec3_sub_vec3(vec3 l, vec3 r) __attribute__((const));
 mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r) __attribute__((const));
-int vec3_greaterthan_vec3(vec3 l, vec3 r) __attribute__((const));
-int vec3_lessthan_vec3(vec3 l, vec3 r) __attribute__((const));
+int32_t vec3_greaterthan_vec3(vec3 l, vec3 r) __attribute__((const));
+int32_t vec3_lessthan_vec3(vec3 l, vec3 r) __attribute__((const));
 
 
 
@@ -173,14 +175,24 @@ vec3 float_sub_vec3(float l, vec3 r) __attribute__((const));
 float float_div_float(float l, float r) __attribute__((const));
 vec2 float_div_vec2(float l, vec2 r) __attribute__((const));
 
-int int_mul(int l, int r) __attribute__((const));
-int int_add(int l, int r) __attribute__((const));
-int int_sub(int l, int r) __attribute__((const));
-int int_div_int(int l, int r) __attribute__((const));
+int32_t int_mul(int32_t l, int32_t r) __attribute__((const));
+int32_t int_add(int32_t l, int32_t r) __attribute__((const));
+int32_t int_sub(int32_t l, int32_t r) __attribute__((const));
+int32_t int_div_int(int32_t l, int32_t r) __attribute__((const));
 
 int2 int2_add(int2 l, int2 r) __attribute__((const));
-int3 int3_mul_int(int3 l, int r) __attribute__((const));
+int3 int3_mul_int(int3 l, int32_t r) __attribute__((const));
 
+
+double clamp_double(double value, double min, double max) __attribute__((const));
+float clamp_float(float value, float min, float max) __attribute__((const));
+int32_t clamp_int32_t(int32_t value, int32_t min, int32_t max) __attribute__((const));
+
+#define clamp(X,Y,Z) _Generic(X, \
+	double: clamp_double, \
+	float: clamp_float, \
+	int32_t: clamp_int32_t \
+	)(X,Y,Z)
 
 // returns the magnitude of a vec3or
 #define mag(X) _Generic(X, \
@@ -195,25 +207,25 @@ int3 int3_mul_int(int3 l, int r) __attribute__((const));
 	)(X)
 
 
-int max_int(int l, int r) __attribute__((const));
+int32_t max_int(int32_t l, int32_t r) __attribute__((const));
 float max_float(float l, float r) __attribute__((const));
 double max_double(double l, double r) __attribute__((const));
 
 // returns the higher of the two arguments
 #define nmax(X,Y) _Generic(X, \
-	int: max_int, \
+	int32_t: max_int, \
 	float: max_float, \
 	double: max_double \
 	)(X,Y)
 
 
-int min_int(int l, int r) __attribute__((const));
+int32_t min_int(int32_t l, int32_t r) __attribute__((const));
 float min_float(float l, float r) __attribute__((const));
 double min_double(double l, double r) __attribute__((const));
 
 // returns the lower of the two arguments
 #define nmin(X,Y) _Generic(X, \
-	int: min_int, \
+	int32_t: min_int, \
 	float: min_float, \
 	double: min_double \
 	)(X,Y)
@@ -278,7 +290,7 @@ double min_double(double l, double r) __attribute__((const));
 	float: _Generic(Y, \
 		vec2: float_div_vec2, \
 		float: float_div_float), \
-	default: int_div_int \
+	default: int_div_int32_t \
 	)(X,Y)
 
 

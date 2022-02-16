@@ -35,7 +35,7 @@ freely, subject to the following restrictions:
  */
 float finvsqrt(float x)
 {
-	union finv { int i; float f; } u;
+	union finv { int32_t i; float f; } u;
 	u.f = x;
 
 	float xhalf = 0.5f*x;
@@ -350,7 +350,7 @@ mat3x3 vec3_jacobian_vec3(vec3 l, vec3 r)
  *
  * Useful for testing if a vector is inside a volume.
  */
-int vec3_greaterthan_vec3(vec3 l, vec3 r)
+int32_t vec3_greaterthan_vec3(vec3 l, vec3 r)
 {
 	if(l.x > r.x)
 	if(l.y > r.y)
@@ -365,7 +365,7 @@ int vec3_greaterthan_vec3(vec3 l, vec3 r)
  *
  * Useful for testing if a vector is inside a volume.
  */
-int vec3_lessthan_vec3(vec3 l, vec3 r)
+int32_t vec3_lessthan_vec3(vec3 l, vec3 r)
 {
 	if(l.x < r.x)
 	if(l.y < r.y)
@@ -380,9 +380,9 @@ _Generic() macro's max(), mul(), add() and sub()
 */
 
 /*
- * Returns the greater of the two int arguments.
+ * Returns the greater of the two int32_t arguments.
  */
-int max_int(int l, int r)
+int32_t max_int(int32_t l, int32_t r)
 {
 	return l > r ? l : r;
 }
@@ -404,9 +404,9 @@ double max_double(double l, double r)
 }
 
 /*
- * Returns the lower of the two int arguments.
+ * Returns the lower of the two int32_t arguments.
  */
-int min_int(int l, int r)
+int32_t min_int(int32_t l, int32_t r)
 {
 	return l < r ? l : r;
 }
@@ -433,7 +433,7 @@ double min_double(double l, double r)
 vec3 mat3x3_mul_vec3(mat3x3 l, vec3 r)
 {
 	vec3 x;
-	for (int i = 0; i < 3; i++)
+	for (int32_t i = 0; i < 3; i++)
 	{
 		x.f[i] = l.m[i][0]*r.x + l.m[i][1]*r.y + l.m[i][2]*r.z;
 	}
@@ -470,8 +470,8 @@ mat4x4 mat4x4_mov_HmdMatrix44(HmdMatrix44_t x)
 mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r)
 {
 	mat4x4 ret;
-	for(int y=0; y<4; y++)
-	for(int x=0; x<4; x++)
+	for(int32_t y=0; y<4; y++)
+	for(int32_t x=0; x<4; x++)
 		ret.m[y][x] =
 			l.m[y][0] * r.m[0][x] +
 			l.m[y][1] * r.m[1][x] +
@@ -486,7 +486,7 @@ mat4x4 mat4x4_mul_mat4x4(mat4x4 l, mat4x4 r)
 vec3 mat4x4_mul_vec3(mat4x4 l, vec3 r)
 {
 	vec3 x;
-	for (int i = 0; i < 3; i++)
+	for (int32_t i = 0; i < 3; i++)
 	{
 		x.f[i] = l.m[i][0]*r.x + l.m[i][1]*r.y + l.m[i][2]*r.z + l.m[i][3];
 	}
@@ -499,7 +499,7 @@ vec3 mat4x4_mul_vec3(mat4x4 l, vec3 r)
 mat4x4 mat4x4_add_mat4x4(mat4x4 l, mat4x4 r)
 {
 	mat4x4 x;
-	for(int i=0; i<16; i++)
+	for(int32_t i=0; i<16; i++)
 		x.f[i] = l.f[i] + r.f[i];
 	return x;
 }
@@ -510,7 +510,7 @@ mat4x4 mat4x4_add_mat4x4(mat4x4 l, mat4x4 r)
 mat4x4 mat4x4_add_float(mat4x4 l, float r)
 {
 	mat4x4 x;
-	for(int i=0; i<16; i++)
+	for(int32_t i=0; i<16; i++)
 		x.f[i] = l.f[i] + r;
 	return x;
 }
@@ -521,7 +521,7 @@ mat4x4 mat4x4_add_float(mat4x4 l, float r)
 mat4x4 mat4x4_mul_float(mat4x4 l, float r)
 {
 	mat4x4 x;
-	for(int i=0; i<16; i++)
+	for(int32_t i=0; i<16; i++)
 		x.f[i] = l.f[i] * r;
 	return x;
 }
@@ -532,7 +532,7 @@ mat4x4 mat4x4_mul_float(mat4x4 l, float r)
 mat4x4 mat4x4_sub_mat4x4(mat4x4 l, mat4x4 r)
 {
 	mat4x4 x;
-	for(int i=0; i<16; i++)
+	for(int32_t i=0; i<16; i++)
 		x.f[i] = l.f[i] - r.f[i];
 	return x;
 }
@@ -677,7 +677,7 @@ vec2 vec2_div_float(vec2 l, float r)
 /*
  * Multiplies two integers.
  */
-int int_mul(int l, int r)
+int32_t int_mul(int32_t l, int32_t r)
 {
 	return l * r;
 }
@@ -685,7 +685,7 @@ int int_mul(int l, int r)
 /*
  * Adds two integers.
  */
-int int_add(int l, int r)
+int32_t int_add(int32_t l, int32_t r)
 {
 	return l + r;
 }
@@ -693,7 +693,7 @@ int int_add(int l, int r)
 /*
  * Subracts an integer from another.
  */
-int int_sub(int l, int r)
+int32_t int_sub(int32_t l, int32_t r)
 {
 	return l - r;
 }
@@ -701,7 +701,7 @@ int int_sub(int l, int r)
 /*
  * Divides an integer by another.
  */
-int int_div(int l, int r)
+int32_t int_div(int32_t l, int32_t r)
 {
 	return l / r;
 }
@@ -711,14 +711,14 @@ int int_div(int l, int r)
  */
 int2 int2_add(int2 l, int2 r)
 {
-	int2 x = {l.x+r.x, l.y+r.y};
+	int2 x = {{l.x+r.x, l.y+r.y}};
 	return x;
 }
 
 /*
  * Multiplies a vector by an integer.
  */
-int3 int3_mul_int(int3 l, int r)
+int3 int3_mul_int(int3 l, int32_t r)
 {
 	int3 x = {{l.x*r, l.y*r, l.z*r}};
 	return x;
@@ -773,4 +773,31 @@ vec3 float_sub_vec3(float l, vec3 r)
 {
 	vec3 x = { .x = l - r.x, .y = l - r.y, .z = l - r.z};
 	return x;
+}
+
+/*
+ * clamp - constrain a value to lie between two further values
+ */
+double clamp_double(double value, double min, double max)
+{
+	const double t = value < min ? min : value;
+	return t > max ? max : t;
+}
+
+/*
+ * clamp - constrain a value to lie between two further values
+ */
+float clamp_float(float value, float min, float max)
+{
+	const float t = value < min ? min : value;
+	return t > max ? max : t;
+}
+
+/*
+ * clamp - constrain a value to lie between two further values
+ */
+int32_t clamp_int32_t(int32_t value, int32_t min, int32_t max)
+{
+	const int32_t t = value < min ? min : value;
+	return t > max ? max : t;
 }
