@@ -801,3 +801,24 @@ int32_t clamp_int32_t(int32_t value, int32_t min, int32_t max)
 	const int32_t t = value < min ? min : value;
 	return t > max ? max : t;
 }
+
+
+/*
+ * mix - linearly interpolate between two values
+ * See: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/mix.xhtml
+ */
+float mix_float(float x, float y, float a)
+{
+	return x * (1.0 - a) + y * a;
+}
+
+/*
+ * smoothstep - perform Hermite interpolation between two values
+ * See: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/smoothstep.xhtml
+ */
+float smoothstep_float(float edge0, float edge1, float x)
+{
+	float t;
+	t = clamp_float((x-edge0) / (edge1 - edge0), 0.0, 1.0);
+	return t * t * (3.0 - 2.0 * t);
+}

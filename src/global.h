@@ -44,6 +44,7 @@ extern int mickey_x;	/* velocity */
 extern int mickey_y;
 extern char keys[KEYMAX];
 extern char mouse[8];	/* button status 0=up 1=down */
+extern int mouse_wheel;
 // On mac...
 // the Logitech drivers are happy to send up to 8 numbered "mouse" buttons
 // http://www.logitech.com/pub/techsupport/mouse/mac/lcc3.9.1.b20.zip

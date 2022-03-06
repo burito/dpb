@@ -68,7 +68,7 @@ int sys_bpp = 32;
 void gfx_resize(void);
 
 ///////////////////////////////////////////////////////////////////////////////
-//////// borrowed from XInput.h 
+//////// borrowed from XInput.h
 ///////////////////////////////////////////////////////////////////////////////
 //#include <Xinput.h>
 #define XINPUT_GAMEPAD_DPAD_UP          0x0001
@@ -243,7 +243,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSDEADCHAR:
 		{
 			uint32_t scancode = (HIWORD(lParam)) & 0x1ff;
-			
+
 			int modifiers = KEY_MOD_CHAR | sys_key_modifiers();
 
 			int out_char = 0;
@@ -255,7 +255,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 //			log_info("wm_char: scancode = %d, wParam = %d, c=%d", scancode, wParam, out_char);
 			sys_event_write(received_event);
-			
+
 		}
 		return 0;
 
@@ -263,7 +263,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 		{
 //			uint32_t scancode = (HIWORD(lParam)) & 0x1ff;
-			
+
 //			char buffer[50];
 //			GetKeyNameTextA(lParam, buffer, 50);
 //			log_info("keydown: scancode = %d, wParam = %d, str = \"%s\"", scancode, wParam, buffer);
@@ -324,7 +324,7 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_XBUTTONDOWN:
 		bit = 1;
 		__attribute__((fallthrough));
-	case WM_XBUTTONUP: 
+	case WM_XBUTTONUP:
 		switch(GET_XBUTTON_WPARAM(wParam)) {
 		case XBUTTON1:
 			mouse[3]=bit;
@@ -337,9 +337,15 @@ static LONG WINAPI wProc(HWND hWndProc, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		return 0;
 
+	case WM_MOUSEWHEEL:
+		mouse_wheel = GET_WHEEL_DELTA_WPARAM(wParam);
+		__attribute__((fallthrough));
 	case WM_MOUSEMOVE:
 		mickey_x += mouse_x - LOWORD(lParam);
 		mickey_y += mouse_y - HIWORD(lParam);
+		// the correct way, but not implemented in mingw
+//		mouse_x = GET_X_LPARAM(lParam);
+//		mouse_y = GET_Y_LPARAM(lParam);
 		mouse_x = LOWORD(lParam);
 		mouse_y = HIWORD(lParam);
 		if(w32_moving)
@@ -418,7 +424,7 @@ static void win_toggle(void)
 		SetWindowLongPtr(hWnd, GWL_STYLE, win_style & ~(WS_CAPTION | WS_THICKFRAME) );
 		SetWindowLongPtr(hWnd, GWL_EXSTYLE, win_exstyle &
 			~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE) );
-		
+
 		MONITORINFO monitor_info;
 		monitor_info.cbSize = sizeof(monitor_info);
 		GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &monitor_info);
@@ -548,6 +554,7 @@ static void handle_events(void)
 {
 	MSG mesg;
 	mickey_x = mickey_y = 0;
+	mouse_wheel = 0;
 	sys_input();
 
 	while(PeekMessage(&mesg, NULL, 0, 0, PM_REMOVE))

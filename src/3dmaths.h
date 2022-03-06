@@ -43,7 +43,7 @@ typedef struct float4 {
 
 typedef union int2 {
 	struct { int32_t x, y; };
-	int32_t f[2];
+	int32_t i[2];
 } int2;
 
 typedef union {
@@ -187,6 +187,10 @@ int3 int3_mul_int(int3 l, int32_t r) __attribute__((const));
 double clamp_double(double value, double min, double max) __attribute__((const));
 float clamp_float(float value, float min, float max) __attribute__((const));
 int32_t clamp_int32_t(int32_t value, int32_t min, int32_t max) __attribute__((const));
+
+float mix_float(float x, float y, float a) __attribute__((const));
+float smoothstep_float(float edge0, float edge1, float x) __attribute__((const));
+
 
 #define clamp(X,Y,Z) _Generic(X, \
 	double: clamp_double, \

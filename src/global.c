@@ -43,6 +43,7 @@ int mouse_y = 0;
 int mickey_x = 0;
 int mickey_y = 0;
 char mouse[8] = {0,0,0,0,0,0,0,0};
+int mouse_wheel = 0;
 char keys[KEYMAX];
 
 
@@ -146,7 +147,7 @@ void sys_event_init(void)
 int sys_event_read(struct sys_event *event)
 {
 	if(sys_event_in == sys_event_out)return 0;
-	
+
 	sys_event_out++;
 	if(sys_event_out == SYS_EVENT_MAX)
 	{
@@ -162,7 +163,7 @@ int sys_event_write(struct sys_event event)
 
 	if( ( sys_event_in == (SYS_EVENT_MAX - 1) ) &&
 		sys_event_out == 0 ) return 0;
-	
+
 	sys_event_in++;
 	if(sys_event_in == SYS_EVENT_MAX)
 	{
@@ -206,4 +207,3 @@ uint16_t sys_key_modifiers(void)
 	}
 	return modifiers;
 }
-
