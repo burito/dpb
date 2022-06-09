@@ -189,10 +189,21 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 	}
 	// dirname() may modify it's argument, so make a copy
 	char *tmp = strdup(w->filename);
-	char *filedir = dirname(tmp);
+	if(tmp == NULL)
+	{
+		log_error("strdup(\"%s\") = %s", w->filename, strerror(errno));
+		goto WF_PARSE_STRDUP_FILENAME;
+	}
+	char *filedir = strdup(dirname(tmp));
+	if(filedir == NULL)
+	{
+		log_error("strdup(dirname(\"%s\")) = %s", tmp, strerror(errno));
+		goto WF_PARSE_STRDUP_DIRNAME;
+	}
+	free(tmp);
+
 	char filepath[1024];
 	snprintf(filepath, 1024, "%s/%s", filedir, line_in);
-	free(tmp);
 
 	log_info("Loading Wavefront MTL(\"%s\");", filepath);
 
@@ -218,6 +229,7 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 		}
 	}
 
+	// allocate space for the materials
 	w->materials = malloc( sizeof(struct WF_MTL) * w->num_materials );
 	if(w->materials == NULL)
 	{
@@ -225,6 +237,7 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 		goto WF_PARSE_MTLLIB_MALLOC;
 	}
 	memset( w->materials, 0, sizeof(struct WF_MTL) * w->num_materials );
+
 	w->num_materials = 0;
 
 	// now that we know how many, and have allocated, parse them
@@ -247,6 +260,10 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 				*tmpline = 0;
 				// the name is now null-terminated, copy it
 				w->materials[w->num_materials].name = strdup(line);
+				if(w->materials[w->num_materials].name == NULL)
+				{
+					log_error("strdup(material[i]) = %s", strerror(errno));
+				}
 				w->current_material = w->num_materials;
 				w->num_materials++;
 			}
@@ -296,19 +313,27 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 					// now copy the string
 					snprintf(filepath, 1024, "%s/%s", filedir, line);
 					*target = strdup(filepath);
+					if(*target == NULL)
+					{
+						log_error("strdup(target) = %s", strerror(errno));
+					}
 				}
 			}
 		}
 	}
 
-	goto WF_PARSE_MTLLIB_SUCCESS;
+	return;
 
-WF_PARSE_MTLLIB_MALLOC:
+
+	free(w->materials);
 	w->num_materials = 0;
-WF_PARSE_MTLLIB_SUCCESS:
+WF_PARSE_MTLLIB_MALLOC:
 	fclose(fptr);
 WF_PARSE_MTLLIB_FOPEN:
-	free(tmp);
+	free(filedir);
+WF_PARSE_STRDUP_DIRNAME:
+	if(tmp != NULL ) free(tmp);
+WF_PARSE_STRDUP_FILENAME:
 	return;
 }
 
