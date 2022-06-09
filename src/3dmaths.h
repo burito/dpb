@@ -294,7 +294,7 @@ double min_double(double l, double r) __attribute__((const));
 	float: _Generic(Y, \
 		vec2: float_div_vec2, \
 		float: float_div_float), \
-	default: int_div_int32_t \
+	default: int_div_int \
 	)(X,Y)
 
 

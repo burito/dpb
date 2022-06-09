@@ -582,7 +582,7 @@ int wf_alloc_first_buffers(struct WF_OBJ *w)
 		w->verticies = malloc( sizeof(vec3)*w->num_verticies );
 		if(w->verticies == NULL)
 		{
-			log_fatal("malloc(verticies) = %d", strerror(errno));
+			log_fatal("malloc(verticies) = %s", strerror(errno));
 			goto WF_ALLOC_VERTICIES;
 		}
 		memset( w->verticies, 0, sizeof(vec3)*w->num_verticies );
@@ -592,7 +592,7 @@ int wf_alloc_first_buffers(struct WF_OBJ *w)
 		w->texcoords = malloc( sizeof(vec2)*w->num_texcoords );
 		if(w->texcoords == NULL)
 		{
-			log_fatal("malloc(texcoords) = %d", strerror(errno));
+			log_fatal("malloc(texcoords) = %s", strerror(errno));
 			goto WF_ALLOC_TEXCOORDS;
 		}
 		memset( w->texcoords, 0, sizeof(vec2)*w->num_texcoords );
@@ -602,7 +602,7 @@ int wf_alloc_first_buffers(struct WF_OBJ *w)
 		w->normals = malloc( sizeof(vec3)*w->num_normals );
 		if(w->normals == NULL)
 		{
-			log_fatal("malloc(normals) = %d", strerror(errno));
+			log_fatal("malloc(normals) = %s", strerror(errno));
 			goto WF_ALLOC_NORMALS;
 		}
 		memset( w->normals, 0, sizeof(vec3)*w->num_normals );
@@ -612,7 +612,7 @@ int wf_alloc_first_buffers(struct WF_OBJ *w)
 		w->triangles = malloc( sizeof(struct WF_TRIANGLE) * w->num_triangles );
 		if(w->triangles == NULL)
 		{
-			log_fatal("malloc(triangles) = %d", strerror(errno));
+			log_fatal("malloc(triangles) = %s", strerror(errno));
 			goto WF_ALLOC_TRIANGLES;
 		}
 		memset( w->triangles, 0, sizeof(struct WF_TRIANGLE) * w->num_triangles );

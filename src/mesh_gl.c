@@ -93,13 +93,32 @@ struct IMAGE_OPENGL* img_load(const char * filename)
 	if(image == NULL)
 	{
 		log_fatal("malloc(image_opengl) = %s", strerror(errno));
-		return NULL;
+		goto IMG_LOAD_MALLOC;
 	}
 	memset(image, 0, sizeof(struct IMAGE_OPENGL) );
 	image->name = strdup(filename);
+	if(image->name == NULL)
+	{
+		log_error("strdup(image->name) = %s", strerror(errno));
+		goto IMG_LOAD_STRDUP;
+	}
 	image->buffer = stbi_load(filename, &image->size.x, &image->size.y, &image->channels, 0);
+	if(image->buffer == NULL)
+	{
+		log_error("stbi_load(\"%s\") failed", filename);
+		goto IMG_LOAD_STBI_LOAD;
+	}
+
 	img_glinit(image);
 	return image;
+
+	free(image->buffer);
+IMG_LOAD_STBI_LOAD:
+	free(image->name);
+IMG_LOAD_STRDUP:
+	free(image);
+IMG_LOAD_MALLOC:
+	return NULL;
 }
 
 
@@ -197,7 +216,7 @@ void mesh_draw(struct MESH_OPENGL *w)
 		for(int i=0; i<w->num_materials; i++)
 		{
 			glActiveTexture(GL_TEXTURE0);
-			if( w->materials[i].file_Kd != NULL )
+			if( w->materials[i].map_Kd != NULL )
 			{
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, w->materials[i].map_Kd->id);
@@ -208,7 +227,7 @@ void mesh_draw(struct MESH_OPENGL *w)
 			}
 
 			glActiveTexture(GL_TEXTURE1);
-			if( w->materials[i].file_Ks != NULL )
+			if( w->materials[i].map_Ks != NULL )
 			{
 				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, w->materials[i].map_Ks->id);
@@ -249,16 +268,11 @@ void mesh_free(struct MESH_OPENGL *w)
 {
 	for(int i=0; i<w->num_materials; i++)
 	{
-		if(w->materials[i].file_Kd)
-		{
-			free(w->materials[i].file_Kd);
-			img_free(w->materials[i].map_Kd);
-		}
-		if(w->materials[i].file_Ks)
-		{
-			free(w->materials[i].file_Ks);
-			img_free(w->materials[i].map_Ks);
-		}
+		if(w->materials[i].file_Kd) free(w->materials[i].file_Kd);
+		if(w->materials[i].map_Kd) img_free(w->materials[i].map_Kd);
+
+		if(w->materials[i].file_Ks) free(w->materials[i].file_Ks);
+		if(w->materials[i].file_Ks) img_free(w->materials[i].map_Ks);
 	}
 	wf_free(w->wf);
 	free(w);
