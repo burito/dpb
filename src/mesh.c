@@ -71,6 +71,11 @@ void wf_pack(struct WF_OBJ *w)
 
 
 	w->index_buffer_data = malloc( sizeof(int3) * arrlen(w->triangles));
+	if( w->index_buffer_data == NULL )
+	{
+		log_fatal("malloc(index_buffer) = %s", strerror(errno));
+		return;
+	}
 
 	if(w->num_materials)
 	{
@@ -182,11 +187,13 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 	// while it is whitespace
 	while( (*line_in == ' ' || *line_in == '\t') ) line_in++;
 
+	// nested to limit the scope of tmpline
 	{
 		char *tmpline = line_in;
 		while( !(*tmpline == '\n' || *tmpline == '\r' || *tmpline == 0) ) tmpline++;
 		*tmpline = 0;
 	}
+
 	// dirname() may modify it's argument, so make a copy
 	char *tmp = strdup(w->filename);
 	if(tmp == NULL)
@@ -321,7 +328,6 @@ void wf_parse_mtllib(struct WF_OBJ *w, char *line_in)
 			}
 		}
 	}
-
 	return;
 
 
@@ -357,9 +363,7 @@ void wf_parse_usemtl(struct WF_OBJ *w, char *line)
 
 	}
 	w->current_material = 0;
-
 }
-
 
 /*
  * Parse a vertex of the form "v 1.0 2.0 3.0"
@@ -490,7 +494,6 @@ int wf_parse_face_corner(struct WF_OBJ *w, char *line)
 	corner.smoothgroup = w->current_smoothgroup;
 
 	// now build a list of unique corners, abusing a hash to do it
-
 	int index = hmget(w->corners, corner);
 	if( index == 0 ) // default value is 0
 	{
@@ -513,7 +516,6 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 {
 	struct WF_TRIANGLE triangle;
 	memset(&triangle, 0, sizeof(struct WF_TRIANGLE));
-
 
 	line++;
 	// parse the first triangle
@@ -540,8 +542,8 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 	// find the next not space
 	while( *line == ' ' || *line == '\t' ) line++;
 	// we should be at the start of a corner definition, or an end of line
-	// while we're not at the end of the line
 
+	// while we're not at the end of the line
 	while( !(*line == 0 || *line == '\r' || *line == '\n') )
 	{
 		// write which smoothgroup this face is in
@@ -564,7 +566,6 @@ void wf_parse_face(struct WF_OBJ *w, char *line)
 		//       while not whitespace         and     not end of line
 		while((*line == ' ' || *line == '\t') && !(*line == 0 || *line == '\r' || *line == '\n') ) line++;
 	}
-
 	return;
 }
 
@@ -577,7 +578,9 @@ void wf_parse_group(struct WF_OBJ *w, char *line)
 	return;
 }
 
-
+/*
+ * Set the currently active smoothgroup
+ */
 void wf_parse_smoothgroup(struct WF_OBJ *w, char *line)
 {
 	line++;
@@ -590,86 +593,8 @@ void wf_parse_smoothgroup(struct WF_OBJ *w, char *line)
 }
 
 /*
- * Parse a material of the form "usemtl mat_name".
+ * Open the file and parse the Wavefront OBJ data contained within
  */
-void wf_parse_material(struct WF_OBJ *w, char *line)
-{
-//	wf_count_material(w, line);
-	return;
-}
-
-
-int wf_alloc_first_buffers(struct WF_OBJ *w)
-{
-	// alloc the memory
-	if(w->num_verticies)
-	{
-		w->verticies = malloc( sizeof(vec3)*w->num_verticies );
-		if(w->verticies == NULL)
-		{
-			log_fatal("malloc(verticies) = %s", strerror(errno));
-			goto WF_ALLOC_VERTICIES;
-		}
-		memset( w->verticies, 0, sizeof(vec3)*w->num_verticies );
-	}
-	if(w->num_texcoords)
-	{
-		w->texcoords = malloc( sizeof(vec2)*w->num_texcoords );
-		if(w->texcoords == NULL)
-		{
-			log_fatal("malloc(texcoords) = %s", strerror(errno));
-			goto WF_ALLOC_TEXCOORDS;
-		}
-		memset( w->texcoords, 0, sizeof(vec2)*w->num_texcoords );
-	}
-	if(w->num_normals)
-	{
-		w->normals = malloc( sizeof(vec3)*w->num_normals );
-		if(w->normals == NULL)
-		{
-			log_fatal("malloc(normals) = %s", strerror(errno));
-			goto WF_ALLOC_NORMALS;
-		}
-		memset( w->normals, 0, sizeof(vec3)*w->num_normals );
-	}
-	if(w->num_triangles)
-	{
-		w->triangles = malloc( sizeof(struct WF_TRIANGLE) * w->num_triangles );
-		if(w->triangles == NULL)
-		{
-			log_fatal("malloc(triangles) = %s", strerror(errno));
-			goto WF_ALLOC_TRIANGLES;
-		}
-		memset( w->triangles, 0, sizeof(struct WF_TRIANGLE) * w->num_triangles );
-	}
-
-	return 0;
-
-
-	if(w->triangles)
-	{
-		arrfree(w->triangles);
-		w->triangles = NULL;
-	}
-WF_ALLOC_TRIANGLES:
-	if(w->normals)
-	{
-		arrfree(w->normals);
-		w->normals = NULL;
-	}
-WF_ALLOC_NORMALS:
-	if(w->texcoords)
-	{
-		arrfree(w->texcoords);
-		w->texcoords = NULL;
-	}
-WF_ALLOC_TEXCOORDS:
-	arrfree(w->verticies);
-	w->verticies = NULL;
-WF_ALLOC_VERTICIES:
-	return 1;
-}
-
 struct WF_OBJ* wf_parse(char *filename)
 {
 	// open the file
@@ -797,29 +722,3 @@ void wf_free(struct WF_OBJ *w)
 	if(w->filename) free(w->filename);
 	free(w);
 }
-
-/*
-int main(int argc, char *argv[])
-{
-	log_init();
-
-	struct WF_OBJ *w;
-	w = wf_load("../models/lpshead/head.OBJ");
-	wf_free(w);
-	w = wf_load("../models/bunny/bunny.obj");
-	wf_free(w);
-	w = wf_load("../models/sponza/sponza.obj");
-	wf_free(w);
-	w = wf_load("../models/buddha/buddha.obj");
-	wf_free(w);
-	w = wf_load("../models/hairball/hairball.obj");
-	wf_free(w);
-	w = wf_load("../models/San_Miguel/san-miguel-low-poly.obj");
-	wf_free(w);
-	w = wf_load("../models/San_Miguel/san-miguel.obj");
-	wf_free(w);
-	w = wf_load("../models/powerplant/powerplant.obj");
-	wf_free(w);
-	return 0;
-}
-*/
